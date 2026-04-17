@@ -1,0 +1,32 @@
+ services:
+  ODRProcesing-postgres:
+    image: postgres:16
+    container_name: ODRProcesing-env-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      # - ${PROJECT_ROOT}/pgdata:/var/lib/postgresql/data
+      - ./pgdata:/var/lib/postgresql/data 
+    ports:
+      - "5433:5432" 
+    restart: always
+
+  ODRProcesing-postgres-migrate:
+    image: migrate/migrate:v4.19.1
+    volumes:
+    # - ${PROJECT_ROOT}/migrations:/migrations
+    - ./migrations:/migrations
+
+  # ODRProcesing-port-forwarder:
+  #  image: alpine/socat:1.8.0.3
+  #  container_name: ODRProcesing-port-forwarder
+  #  command:
+  #   - socat
+  #   - TCP-LISTEN:5432,fork
+  #   - TCP:ODRProcesing-postgres:5432
+  #  ports:
+  #   - "127.0.0.1:5433:5432"
+
+
