@@ -7,14 +7,14 @@ import (
 )
 
 type LoggerConfig struct {
-	Level  string `envconfig:"LEVEL" required:"true"`
-	Folder string `envconfig:"FOLDER" required:"true"`
+	Level  string `envconfig:"LOGGER_LEVEL" required:"true"`
+	Folder string `envconfig:"LOGGER_FOLDER" required:"true"`
 }
 
 func NewConfig() (LoggerConfig, error) {
 	var config LoggerConfig
 
-	if err := envconfig.Process("LOGGER", &config); err != nil { //LOGGER + LEVEL / FOLDER
+	if err := envconfig.Process("", &config); err != nil { //LOGGER + LEVEL / FOLDER
 		return LoggerConfig{}, fmt.Errorf("process envconfig: %w", err)
 	}
 

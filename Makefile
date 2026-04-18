@@ -38,4 +38,5 @@ migrate-action:
 		${action}
 
 todoapp-run:
+ go mod tidy && \
  go run cmd/processing/main.go

@@ -10,10 +10,15 @@ import (
 	core_logger "github.com/AMmetro/ODRProcesing/internal/core/logger"
 	core_http_server "github.com/AMmetro/ODRProcesing/internal/core/transport/http/server"
 	users_transport_http "github.com/AMmetro/ODRProcesing/internal/features/userAgent/transport/http"
+	"github.com/joho/godotenv"
 	"go.uber.org/zap"
 )
 
 func main() {
+
+	if err := godotenv.Load(); err != nil {
+		fmt.Println("no .env file found")
+	}
 
 	ctx, cancel := signal.NotifyContext(
 		context.Background(),
