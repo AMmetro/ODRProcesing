@@ -1,8 +1,10 @@
 package users_transport_http
 
 import (
+	"context"
 	"net/http"
 
+	"github.com/AMmetro/ODRProcesing/internal/core/domain"
 	core_http_server "github.com/AMmetro/ODRProcesing/internal/core/transport/http/server"
 )
 
@@ -11,7 +13,10 @@ type UsersHTTPHandler struct {
 }
 
 type UsersService interface {
-	// CreateUser()
+	CreateUser(
+		ctx context.Context,
+		user domain.UserAgent,
+	) (domain.UserAgent, error)
 }
 
 func NewUserHTTPHandler(

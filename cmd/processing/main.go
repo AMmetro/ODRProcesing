@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	core_logger "github.com/AMmetro/ODRProcesing/internal/core/logger"
+	core_http_middleware "github.com/AMmetro/ODRProcesing/internal/core/transport/http/middleware"
 	core_http_server "github.com/AMmetro/ODRProcesing/internal/core/transport/http/server"
 	users_transport_http "github.com/AMmetro/ODRProcesing/internal/features/userAgent/transport/http"
 	"github.com/joho/godotenv"
@@ -44,6 +45,10 @@ func main() {
 	httpServer := core_http_server.NewHTTPServer(
 		core_http_server.NewConfigMust(),
 		logger,
+		core_http_middleware.RequestID(),
+		core_http_middleware.Logger(logger),
+		core_http_middleware.Panic(),
+		core_http_middleware.Trace(),
 	)
 	httpServer.RegisterAPIRoute(apiVersionRouter)
 
