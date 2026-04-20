@@ -31,12 +31,12 @@ migrate-down:
 
 migrate-action:
 	docker compose run --rm \
-		--entrypoint migrate \
-		ODRProcesing-postgres-migrate \
-		-path=/migrations \
-		-database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@ODRProcesing-postgres:5432/${POSTGRES_DB}?sslmode=disable \
-		${action}
+	--entrypoint migrate \
+	ODRProcesing-postgres-migrate \
+	-path=/migrations \
+	-database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@ODRProcesing-postgres:5432/${POSTGRES_DB}?sslmode=disable \
+	${action}
 
 todoapp-run:
- go mod tidy && \
- go run cmd/processing/main.go
+	go mod tidy && \
+	go run cmd/processing/main.go

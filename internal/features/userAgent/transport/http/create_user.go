@@ -21,13 +21,13 @@ type CreateUserResponse struct {
 	PhoneNumber string `json:"phone_number"`
 }
 
-func (h *UsersHTTPHandler) CreateUser(rw http.ResponseWriter, r *http.Request) {
+func (h *UsersHTTPHandler) CreateUserAgent(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
 
 	responseHandler := core_http_response.NewHTTPResponseHandler(log, rw)
 
-	log.Debug("invoke CreateUser handler")
+	log.Debug("invoke CreateUserAgent handler")
 
 	var request CreateUserRequest
 	if err := core_http_request.DecodeAndValidateRequest(r, &request); err != nil {
@@ -37,7 +37,7 @@ func (h *UsersHTTPHandler) CreateUser(rw http.ResponseWriter, r *http.Request) {
 
 	userDomain := domainFromDTO(request)
 
-	userDomain, err := h.usersService.CreateUser(ctx, userDomain)
+	userDomain, err := h.usersService.CreateUserAgent(ctx, userDomain)
 	if err != nil {
 		responseHandler.ErrorResponse(err, "failed to create user")
 		return
@@ -58,17 +58,3 @@ func dtoFromDomain(userAgent domain.UserAgent) CreateUserResponse {
 		PhoneNumber: *userAgent.PhoneNumber,
 	}
 }
-
-// if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-// 	log.Error("decode request body", zap.Error(err))
-// 	http.Error(rw, "bad request", http.StatusBadRequest)
-// 	return
-// }
-
-// rw.WriteHeader(http.StatusOK)
-// _ = json.NewEncoder(rw).Encode(CreateUserResponse{
-// 	ID:          0,
-// 	Version:     0,
-// 	FullName:    request.FullName,
-// 	PhoneNumber: request.PhoneNumber,
-// })

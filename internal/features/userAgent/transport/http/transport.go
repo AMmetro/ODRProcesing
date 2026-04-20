@@ -13,7 +13,7 @@ type UsersHTTPHandler struct {
 }
 
 type UsersService interface {
-	CreateUser(
+	CreateUserAgent(
 		ctx context.Context,
 		user domain.UserAgent,
 	) (domain.UserAgent, error)
@@ -32,7 +32,7 @@ func (h *UsersHTTPHandler) Routes() []core_http_server.Route {
 		{
 			Method:  http.MethodPost,
 			Path:    "/users",
-			Handler: h.CreateUser,
+			Handler: h.CreateUserAgent,
 		},
 	}
 }
