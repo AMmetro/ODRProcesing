@@ -6,9 +6,17 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceFolder}",
-            "env": {},
-            "args": []
+            "program": "${workspaceFolder}/cmd/processing",
+            "env": {
+                "LOGGER_LEVEL": "debug",
+                "DB_HOST": "localhost",
+                "DB_PORT": "5433",
+                "DB_USER": "admin",
+                "DB_PASSWORD": "admin",
+                "DB_NAME": "ODRProcesing"
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
         }
     ]
 }

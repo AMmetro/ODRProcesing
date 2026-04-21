@@ -51,10 +51,16 @@ func domainFromDTO(dto CreateUserRequest) domain.UserAgent {
 }
 
 func dtoFromDomain(userAgent domain.UserAgent) CreateUserResponse {
+
+	var phone string
+	if userAgent.PhoneNumber != nil {
+		phone = *userAgent.PhoneNumber
+	}
+
 	return CreateUserResponse{
 		ID:          userAgent.ID,
 		Version:     userAgent.Version,
 		FullName:    userAgent.FullName,
-		PhoneNumber: *userAgent.PhoneNumber,
+		PhoneNumber: phone,
 	}
 }

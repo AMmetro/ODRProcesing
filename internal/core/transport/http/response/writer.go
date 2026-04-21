@@ -23,16 +23,6 @@ func (rw *ResponseWriter) WriteHeader(statusCode int) {
 	rw.statusCode = statusCode
 }
 
-// Write ensures that if the handler writes a body without explicitly
-// calling WriteHeader, we record the default status code (200) so
-// tracing middleware can read it safely.
-// func (rw *ResponseWriter) Write(b []byte) (int, error) {
-// 	if rw.statusCode == statusCodeUnintialized {
-// 		rw.statusCode = http.StatusOK
-// 	}
-// 	return rw.ResponseWriter.Write(b)
-// }
-
 func (rw *ResponseWriter) GetStatusCodeOrPanic() int {
 
 	if rw.statusCode == statusCodeUnintialized {

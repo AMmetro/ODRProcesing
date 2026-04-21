@@ -12,10 +12,9 @@ import (
 )
 
 type HTTPServer struct {
-	mux    *http.ServeMux
-	config Config
-	log    *core_logger.Logger
-
+	mux        *http.ServeMux
+	config     Config
+	log        *core_logger.Logger
 	middleware []core_http_middleware.Middleware
 }
 
@@ -32,17 +31,11 @@ func NewHTTPServer(
 	}
 }
 
+// map routers and strip prefix {/api/v1}
 func (h *HTTPServer) RegisterAPIRoute(routers ...*APIVersionRouter) {
 	for _, router := range routers {
 		prefix := "/api/" + string(router.apiVersion)
-
-		// Wrap the API router with server-level middleware so that the
-		// middleware is applied to handlers registered inside the router.
-		// Without this, handlers inside the nested router may be invoked
-		// without the middleware-provided context (for example, logger),
-		// which causes panics like "no logger in context".
 		wrapped := core_http_middleware.ChainMiddleware(router, h.middleware...)
-
 		h.mux.Handle(
 			prefix+"/",
 			http.StripPrefix(prefix, wrapped),
@@ -51,28 +44,24 @@ func (h *HTTPServer) RegisterAPIRoute(routers ...*APIVersionRouter) {
 }
 
 func (h *HTTPServer) Run(ctx context.Context) error {
-
+	// 1. apply middleware to router
 	mux := core_http_middleware.ChainMiddleware(h.mux, h.middleware...)
-
 	server := &http.Server{
 		Addr:    h.config.Addr,
 		Handler: mux,
 	}
-
 	ch := make(chan error, 1)
-
+	// 2. start server in goroutine
 	go func() {
 		defer close(ch)
-
 		h.log.Warn("start HTTP server", zap.String("addr", h.config.Addr))
-
 		err := server.ListenAndServe()
-
 		if !errors.Is(err, http.ErrServerClosed) {
 			ch <- err
 		}
 	}()
 
+	// 3. shutdown server gracefully if get signal
 	select {
 	case err := <-ch:
 		if err != nil {
@@ -80,20 +69,16 @@ func (h *HTTPServer) Run(ctx context.Context) error {
 		}
 	case <-ctx.Done():
 		h.log.Warn("shutdown HTTP server...")
-
 		shutdownCtx, cancel := context.WithTimeout(
 			context.Background(),
 			h.config.ShutdownTimeout,
 		)
 		defer cancel()
-
 		if err := server.Shutdown(shutdownCtx); err != nil {
 			_ = server.Close()
 			return fmt.Errorf("shutdown HTTP server: %w", err)
 		}
-
 		h.log.Warn("HTTP server stopped")
 	}
-
 	return nil
 }

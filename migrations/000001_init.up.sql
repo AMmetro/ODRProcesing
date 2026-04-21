@@ -1,6 +1,6 @@
-CREATE SCHEMA ODRProcesing;
+CREATE SCHEMA odrprocesing;
 
-CREATE TABLE ODRProcesing.users (
+CREATE TABLE odrprocesing.users (
     id SERIAL PRIMARY KEY,
     VERSION BIGINT NOT NULL DEFAULT 1,
     full_name VARCHAR(100) NOT NULL CHECK (char_length(full_name) BETWEEN 3 AND 100),
@@ -10,7 +10,7 @@ CREATE TABLE ODRProcesing.users (
         )
 );
 
-CREATE TABLE ODRProcesing.tasks (
+CREATE TABLE odrprocesing.tasks (
     id SERIAL PRIMARY KEY,
     version BIGINT NOT NULL DEFAULT 1,
     title VARCHAR(100) NOT NULL CHECK(char_length(title) BETWEEN 1 AND 100),
@@ -18,7 +18,7 @@ CREATE TABLE ODRProcesing.tasks (
     completed BOOLEAN NOT NULL,
     created_at TIMESTAMP NOT NULL,
     completed_at TIMESTAMP,
-    author_user_id INTEGER NOT NULL REFERENCES ODRProcesing.users(id),
+    author_user_id INTEGER NOT NULL REFERENCES odrprocesing.users(id),
     
     CHECK (
         (completed=FALSE AND completed_at IS NULL)

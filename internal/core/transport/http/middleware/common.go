@@ -63,8 +63,7 @@ func Panic() Middleware {
 					)
 				}
 			}()
-
-			next.ServeHTTP(w, r) // ← вызываем следующий обработчик
+			next.ServeHTTP(w, r)
 		})
 	}
 }
@@ -75,15 +74,12 @@ func Trace() Middleware {
 			ctx := r.Context()
 			log := core_logger.FromContext(ctx)
 			rw := core_http_response.NewResponseWriter(w)
-
 			before := time.Now()
 			log.Debug(
 				">>> incoming HTTP request",
 				zap.Time("time", before.UTC()),
 			)
-
 			next.ServeHTTP(rw, r)
-
 			log.Debug(
 				"<<< done HTTP request",
 				zap.Int("Status_cod", rw.GetStatusCodeOrPanic()),

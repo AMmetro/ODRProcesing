@@ -16,8 +16,8 @@
   ODRProcesing-postgres-migrate:
     image: migrate/migrate:v4.19.1
     volumes:
-    # - ${PROJECT_ROOT}/migrations:/migrations
     - ./migrations:/migrations
+    # - ${PROJECT_ROOT}/migrations:/migrations
 
   # ODRProcesing-port-forwarder:
   #  image: alpine/socat:1.8.0.3
