@@ -15,6 +15,12 @@ type UsersRepository interface {
 		ctx context.Context,
 		user domain.UserAgent,
 	) (domain.UserAgent, error)
+
+	GetUsers(
+		ctx context.Context,
+		limit *int,
+		offset *int,
+	) ([]domain.UserAgent, error)
 }
 
 func NewUsersService(

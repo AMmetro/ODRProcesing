@@ -17,6 +17,12 @@ type UsersService interface {
 		ctx context.Context,
 		user domain.UserAgent,
 	) (domain.UserAgent, error)
+
+	GetUsers(
+		ctx context.Context,
+		limit *int,
+		offset *int,
+	) ([]domain.UserAgent, error)
 }
 
 func NewUserHTTPHandler(
@@ -33,6 +39,11 @@ func (h *UsersHTTPHandler) Routes() []core_http_server.Route {
 			Method:  http.MethodPost,
 			Path:    "/users",
 			Handler: h.CreateUserAgent,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/users",
+			Handler: h.GetUsers,
 		},
 	}
 }
