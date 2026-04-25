@@ -26,6 +26,11 @@ type UsersRepository interface {
 		ctx context.Context,
 		id int,
 	) (domain.UserAgent, error)
+
+	DeleteUserAgent(
+		ctx context.Context,
+		id int,
+	) error
 }
 
 func NewUsersService(

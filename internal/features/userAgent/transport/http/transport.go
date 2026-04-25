@@ -28,6 +28,11 @@ type UsersService interface {
 		ctx context.Context,
 		id int,
 	) (domain.UserAgent, error)
+
+	DeleteUserAgent(
+		ctx context.Context,
+		id int,
+	) error
 }
 
 func NewUserHTTPHandler(
@@ -54,6 +59,11 @@ func (h *UsersHTTPHandler) Routes() []core_http_server.Route {
 			Method:  http.MethodPost,
 			Path:    "/users",
 			Handler: h.CreateUserAgent,
+		},
+		{
+			Method:  http.MethodDelete,
+			Path:    "/user/{id}",
+			Handler: h.DeleteUserAgentRequest,
 		},
 	}
 }

@@ -31,10 +31,13 @@ func (h *HTTPResponseHandler) JSONResponse(
 	statusCode int,
 ) {
 	h.rw.WriteHeader(statusCode)
-
 	if err := json.NewEncoder(h.rw).Encode(responseBody); err != nil {
 		h.log.Error("write HTTP response", zap.Error(err))
 	}
+}
+
+func (h *HTTPResponseHandler) NoContentResponse() {
+	h.rw.WriteHeader(http.StatusNoContent)
 }
 
 func (h *HTTPResponseHandler) ErrorResponse(err error, msg string) {
@@ -68,7 +71,6 @@ func (h *HTTPResponseHandler) ErrorResponse(err error, msg string) {
 func (h *HTTPResponseHandler) PanicResponse(p any, msg string) {
 	statusCode := http.StatusInternalServerError
 	err := fmt.Errorf("unexpected panic: %v", p)
-
 	h.log.Error(msg, zap.Error(err))
 	h.errorResponse(statusCode, err, msg)
 }
