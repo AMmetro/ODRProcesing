@@ -11,17 +11,30 @@ import (
 
 var requestValidator = validator.New()
 
-/*
-* wrap error with core_errors.ErrInvalidArgument
- */
+type valitable interface {
+	Validate() error
+}
 
 func DecodeAndValidateRequest(r *http.Request, dest any) error {
+	// parse JSON from request to dest
 	if err := json.NewDecoder(r.Body).Decode(dest); err != nil {
 		return fmt.Errorf("decode json: %v: %w", err, core_errors.ErrInvalidArgument)
 	}
 
-	if err := requestValidator.Struct(dest); err != nil {
-		return fmt.Errorf("request validation:%v: %w", err, core_errors.ErrInvalidArgument)
+	var err error
+	// check if dest implements interface valitable
+	v, ok := dest.(valitable)
+	if ok {
+		// if implements, validate with implemented methods
+		err = v.Validate()
+	} else {
+		// validate structure dest {json:"full_name" validate:"required,min=3,max=100"}
+		// according to tags in structure call methods Validate
+		err = requestValidator.Struct(dest)
+	}
+
+	if err != nil {
+		return fmt.Errorf("request validation: %v: %w", err, core_errors.ErrInvalidArgument)
 	}
 
 	return nil
