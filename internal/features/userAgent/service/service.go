@@ -16,6 +16,11 @@ type UsersRepository interface {
 		user domain.UserAgent,
 	) (domain.UserAgent, error)
 
+	UpdateUserAgent(
+		ctx context.Context,
+		user domain.UserAgent,
+	) (domain.UserAgent, error)
+
 	GetUsers(
 		ctx context.Context,
 		limit *int,

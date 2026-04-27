@@ -49,7 +49,6 @@ func (u *UserAgent) Validate() error {
 			core_errors.ErrInvalidArgument,
 		)
 	}
-
 	if u.PhoneNumber != nil {
 		phoneNumberLen := len([]rune(*u.PhoneNumber))
 		if phoneNumberLen < 10 || phoneNumberLen > 15 {
@@ -59,17 +58,49 @@ func (u *UserAgent) Validate() error {
 				core_errors.ErrInvalidArgument,
 			)
 		}
-
 		re := regexp.MustCompile(`^\+?[0-9]+$`)
-
 		if !re.MatchString(*u.PhoneNumber) {
 			return fmt.Errorf(
 				"invalid `PhoneNumber` format: %w",
 				core_errors.ErrInvalidArgument,
 			)
 		}
+	}
+	return nil
+}
 
+func (u *UserAgent) ApplyPatch(patch UserAgentPatch) error {
+	if err := patch.Validate(); err != nil {
+		return fmt.Errorf("validate user patch: %w", err)
 	}
 
+	tmp := *u
+
+	if patch.FullName.Set {
+		tmp.FullName = *patch.FullName.Value
+	}
+
+	if patch.PhoneNumber.Set {
+		tmp.PhoneNumber = patch.PhoneNumber.Value
+	}
+
+	if err := tmp.Validate(); err != nil {
+		return fmt.Errorf("validate patched user: %w", err)
+	}
+
+	*u = tmp
+
+	return nil
+}
+
+type UserAgentPatch struct {
+	FullName    Nullable[string]
+	PhoneNumber Nullable[string]
+}
+
+func (p *UserAgentPatch) Validate() error {
+	if p.FullName.Set && p.FullName.Value == nil {
+		return fmt.Errorf("Full name can`t be patched to NULL: %w", core_errors.ErrInvalidArgument)
+	}
 	return nil
 }

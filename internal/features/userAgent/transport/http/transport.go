@@ -18,6 +18,12 @@ type UsersService interface {
 		user domain.UserAgent,
 	) (domain.UserAgent, error)
 
+	UpdateUserAgent(
+		ctx context.Context,
+		id int,
+		user domain.UserAgentPatch,
+	) (domain.UserAgent, error)
+
 	GetUsers(
 		ctx context.Context,
 		limit *int,
@@ -64,6 +70,11 @@ func (h *UsersHTTPHandler) Routes() []core_http_server.Route {
 			Method:  http.MethodDelete,
 			Path:    "/user/{id}",
 			Handler: h.DeleteUserAgentRequest,
+		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/user/{id}",
+			Handler: h.UpdateUserRequest,
 		},
 	}
 }
