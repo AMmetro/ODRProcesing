@@ -7,7 +7,7 @@ import (
 
 	"github.com/AMmetro/ODRProcesing/internal/core/domain"
 	core_errors "github.com/AMmetro/ODRProcesing/internal/core/errors"
-	"github.com/jackc/pgx/v5"
+	core_postgres_pool "github.com/AMmetro/ODRProcesing/internal/core/repository/postgres/pool"
 )
 
 func (r *UsersRepository) GetUserAgent(
@@ -30,7 +30,7 @@ func (r *UsersRepository) GetUserAgent(
 	)
 
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, core_postgres_pool.ErrNoRows) {
 			return domain.UserAgent{}, fmt.Errorf("user not found:: %v: %w", err, core_errors.ErrNotFound)
 		}
 		return domain.UserAgent{}, fmt.Errorf("scan error: %w", err)

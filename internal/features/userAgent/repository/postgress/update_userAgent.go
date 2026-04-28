@@ -7,7 +7,7 @@ import (
 
 	"github.com/AMmetro/ODRProcesing/internal/core/domain"
 	core_errors "github.com/AMmetro/ODRProcesing/internal/core/errors"
-	"github.com/jackc/pgx/v5"
+	core_postgres_pool "github.com/AMmetro/ODRProcesing/internal/core/repository/postgres/pool"
 )
 
 func (r *UsersRepository) UpdateUserAgent(
@@ -33,7 +33,7 @@ func (r *UsersRepository) UpdateUserAgent(
 		&userModel.PhoneNumber,
 	)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, core_postgres_pool.ErrNoRows) {
 			return domain.UserAgent{}, fmt.Errorf("user with id='%d' concurently access: %w",
 				user.ID, core_errors.ErrConflict)
 		}

@@ -8,7 +8,7 @@ import (
 	"syscall"
 
 	core_logger "github.com/AMmetro/ODRProcesing/internal/core/logger"
-	core_postgres_pool "github.com/AMmetro/ODRProcesing/internal/core/repository/postgres/pool"
+	core_pgx_pool "github.com/AMmetro/ODRProcesing/internal/core/repository/postgres/pool/pgx"
 	core_http_middleware "github.com/AMmetro/ODRProcesing/internal/core/transport/http/middleware"
 	core_http_server "github.com/AMmetro/ODRProcesing/internal/core/transport/http/server"
 	users_postgres_repository "github.com/AMmetro/ODRProcesing/internal/features/userAgent/repository/postgress"
@@ -51,7 +51,16 @@ func main() {
 	// ============================================================================
 	// 4. CREATE CONNECTION POOL
 	// ============================================================================
-	pool, err := core_postgres_pool.NewConnectionPool(ctx, core_postgres_pool.NewConfigMust())
+	// pool, err := core_postgres_pool.NewConnectionPool(ctx, core_postgres_pool.NewConfigMust())
+	// if err != nil {
+	// 	logger.Fatal("Faled to init postges poll", zap.Error(err))
+	// }
+	// defer pool.Close()
+
+	pool, err := core_pgx_pool.NewPool(
+		ctx,
+		core_pgx_pool.NewConfigMust(),
+	)
 	if err != nil {
 		logger.Fatal("Faled to init postges poll", zap.Error(err))
 	}
