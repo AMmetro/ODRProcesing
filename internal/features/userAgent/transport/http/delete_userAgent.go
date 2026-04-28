@@ -4,8 +4,9 @@ import (
 	"net/http"
 
 	core_logger "github.com/AMmetro/ODRProcesing/internal/core/logger"
+	core_http_request "github.com/AMmetro/ODRProcesing/internal/core/transport/http/request"
 	core_http_response "github.com/AMmetro/ODRProcesing/internal/core/transport/http/response"
-	core_http_utils "github.com/AMmetro/ODRProcesing/internal/core/transport/http/utils"
+
 	"go.uber.org/zap"
 )
 
@@ -17,7 +18,7 @@ func (h *UsersHTTPHandler) DeleteUserAgentRequest(rw http.ResponseWriter, r *htt
 
 	responseHandler := core_http_response.NewHTTPResponseHandler(log, rw)
 
-	userId, err := core_http_utils.GetIntPathValue(r, "id")
+	userId, err := core_http_request.GetIntPathValue(r, "id")
 	if err != nil {
 		responseHandler.ErrorResponse(err, "can't get userId from path")
 		return

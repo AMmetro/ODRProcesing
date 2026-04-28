@@ -98,6 +98,13 @@ type UserAgentPatch struct {
 	PhoneNumber Nullable[string]
 }
 
+func NewUserAgentPatch(fullName Nullable[string], phoneNumber Nullable[string]) UserAgentPatch {
+	return UserAgentPatch{
+		FullName:    fullName,
+		PhoneNumber: phoneNumber,
+	}
+}
+
 func (p *UserAgentPatch) Validate() error {
 	if p.FullName.Set && p.FullName.Value == nil {
 		return fmt.Errorf("Full name can`t be patched to NULL: %w", core_errors.ErrInvalidArgument)

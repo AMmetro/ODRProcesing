@@ -1,0 +1,2 @@
+2026-04-28_16-27-58.44476	DEBUG	processing/main.go:49	initializing feature	{"feature": "users"}
+2026-04-28_16-27-58.45629	FATAL	processing/main.go:65	Faled to init postges poll	{"error": "pgxpool ping: failed to connect to `user=admin database=ODRProcesing`:\n\t[::1]:5433 (localhost): dial error: dial tcp [::1]:5433: connectex: No connection could be made because the target machine actively refused it.\n\t127.0.0.1:5433 (localhost): dial error: dial tcp 127.0.0.1:5433: connectex: No connection could be made because the target machine actively refused it."}

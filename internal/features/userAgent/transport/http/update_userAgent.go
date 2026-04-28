@@ -10,7 +10,6 @@ import (
 	core_http_request "github.com/AMmetro/ODRProcesing/internal/core/transport/http/request"
 	core_http_response "github.com/AMmetro/ODRProcesing/internal/core/transport/http/response"
 	core_http_types "github.com/AMmetro/ODRProcesing/internal/core/transport/http/types"
-	core_http_utils "github.com/AMmetro/ODRProcesing/internal/core/transport/http/utils"
 )
 
 type UpdateUserRequest struct {
@@ -55,7 +54,7 @@ func (h *UsersHTTPHandler) UpdateUserRequest(rw http.ResponseWriter, r *http.Req
 
 	log.Debug("invoke Update UserAgent handler")
 
-	userId, err := core_http_utils.GetIntPathValue(r, "id")
+	userId, err := core_http_request.GetIntPathValue(r, "id")
 	if err != nil {
 		responseHandler.ErrorResponse(err, "can't get userId from path")
 		return
@@ -79,8 +78,8 @@ func (h *UsersHTTPHandler) UpdateUserRequest(rw http.ResponseWriter, r *http.Req
 }
 
 func userPatchFromRequest(request UpdateUserRequest) domain.UserAgentPatch {
-	return domain.UserAgentPatch{
-		FullName:    request.FullName.ToDomain(),
-		PhoneNumber: request.PhoneNumber.ToDomain(),
-	}
+	return domain.NewUserAgentPatch(
+		request.FullName.ToDomain(),
+		request.PhoneNumber.ToDomain(),
+	)
 }
