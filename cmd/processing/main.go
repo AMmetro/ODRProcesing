@@ -90,20 +90,22 @@ func main() {
 	// ============================================================================
 	// 7. CREATE ROUTER API VERSION /api/v1/
 	// ============================================================================
-	apiVersionRouter := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion1)
+	apiVersionRouterV1 := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion1)
+	apiVersionRouterV1.RegisterRoutes(usersTransportHTTP.Routes()...)
 
-	// get all routes (POST /users)
-	usersRoutes := usersTransportHTTP.Routes()
-
-	// register all routes to API
-	apiVersionRouter.RegisterRoutes(usersRoutes...)
+	// apiVersionRouterV2 := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion2,
+	// 	core_http_middleware.Dummy("api v2 middleware"),
+	// )
+	// apiVersionRouterV2.RegisterRoutes(usersTransportHTTP.Routes()...)
 
 	// setup router - to HTTP server
-	httpServer.RegisterAPIRoute(apiVersionRouter)
+	httpServer.RegisterAPIRoute(apiVersionRouterV1)
+	// httpServer.RegisterAPIRoute(apiVersionRouterV1, apiVersionRouterV2)
 
 	// ============================================================================
 	// 8. START SERVER AND WAIT SIGNAL GRACEFUL SHUTDOWN
 	// ============================================================================
+
 	if err := httpServer.Run(ctx); err != nil {
 		logger.Error("failed to run HTTP server", zap.Error(err))
 	}
