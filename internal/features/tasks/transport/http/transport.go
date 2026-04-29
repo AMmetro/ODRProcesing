@@ -1,7 +1,8 @@
-package users_transport_http
+package tasks_transport_http
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/AMmetro/ODRProcesing/internal/core/domain"
 	core_http_server "github.com/AMmetro/ODRProcesing/internal/core/transport/http/server"
@@ -12,7 +13,7 @@ type TasksHTTPHandler struct {
 }
 
 type TasksService interface {
-	CreateTasks(
+	CreateTask(
 		ctx context.Context,
 		task domain.Task,
 	) (domain.Task, error)
@@ -28,10 +29,10 @@ func NewTasksHTTPHandler(
 
 func (h *TasksHTTPHandler) Routes() []core_http_server.Route {
 	return []core_http_server.Route{
-		// {
-		// 	Method:  http.MethodPost,
-		// 	Path:    "/tasks",
-		// 	Handler: h.CreateUserAgent,
-		// },
+		{
+			Method:  http.MethodPost,
+			Path:    "/tasks",
+			Handler: h.CreateTask,
+		},
 	}
 }
