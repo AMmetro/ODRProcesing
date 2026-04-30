@@ -2,7 +2,6 @@ package tasks_transport_http
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/AMmetro/ODRProcesing/internal/core/domain"
 	core_logger "github.com/AMmetro/ODRProcesing/internal/core/logger"
@@ -17,16 +16,13 @@ type CreateTaskRequest struct {
 	AuthorUserId int     `json:"author_user_id" validate:"required"`
 }
 
-type CreateTaskResponse struct {
-	ID           int        `json:"id"`
-	Version      int        `json:"version"`
-	Title        string     `json:"title"`
-	Description  *string    `json:"description"`
-	Completed    bool       `json:"completed"`
-	CreatedAt    time.Time  `json:"created_at"`
-	CompletedAt  *time.Time `json:"completed_at"`
-	AuthorUserId int        `json:"author_user_id"`
-}
+type CreateTaskResponse TaskDTOResponse
+
+/* todo for future options */
+// type CreateTaskResponse struct {
+// 	Task TaskDTOResponse
+// 	NewOptions []any
+// }
 
 func (h *TasksHTTPHandler) CreateTask(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -53,19 +49,6 @@ func (h *TasksHTTPHandler) CreateTask(rw http.ResponseWriter, r *http.Request) {
 		responseHandler.ErrorResponse(err, "failed to create task")
 		return
 	}
-	response := taskDTOfromDomain(taskDomain)
+	response := CreateTaskResponse(TaskDtoFromDomain(taskDomain))
 	responseHandler.JSONResponse(response, http.StatusCreated)
-}
-
-func taskDTOfromDomain(taskDomain domain.Task) CreateTaskResponse {
-	return CreateTaskResponse{
-		ID:           taskDomain.ID,
-		Version:      taskDomain.Version,
-		Title:        taskDomain.Title,
-		Description:  taskDomain.Description,
-		Completed:    taskDomain.Completed,
-		CreatedAt:    taskDomain.CreatedAt,
-		CompletedAt:  taskDomain.CompletedAt,
-		AuthorUserId: taskDomain.AuthorUserId,
-	}
 }
