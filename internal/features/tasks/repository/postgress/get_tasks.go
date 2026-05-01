@@ -63,10 +63,10 @@ func (r *TasksRepository) GetTasks(
 	}
 	defer rows.Close()
 
-	var tasksModel []TasksModel
+	var tasksModel []TaskModel
 
 	for rows.Next() {
-		var task TasksModel
+		var task TaskModel
 
 		err := rows.Scan(
 			&task.ID,

@@ -6,7 +6,7 @@ import (
 	"github.com/AMmetro/ODRProcesing/internal/core/domain"
 )
 
-type TasksModel struct {
+type TaskModel struct {
 	ID           int
 	Version      int
 	Title        string
@@ -17,7 +17,7 @@ type TasksModel struct {
 	CompletedAt  *time.Time
 }
 
-func TasksDomainsFromModels(tasks []TasksModel) []domain.Task {
+func TasksDomainsFromModels(tasks []TaskModel) []domain.Task {
 
 	tasksDomain := make([]domain.Task, 0, len(tasks))
 

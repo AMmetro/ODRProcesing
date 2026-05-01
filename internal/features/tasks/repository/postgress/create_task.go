@@ -32,7 +32,7 @@ func (r *TasksRepository) CreateTask(
 		task.CompletedAt,
 	)
 
-	var taskModel TasksModel
+	var taskModel TaskModel
 
 	err := row.Scan(
 		&taskModel.ID,
