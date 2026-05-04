@@ -10,16 +10,18 @@ import (
 	core_postgres_pool "github.com/AMmetro/ODRProcesing/internal/core/repository/postgres/pool"
 )
 
-func (r *TasksRepository) CreateTask(
+func (r *TasksRepository) UpdateTask(
 	ctx context.Context,
 	task domain.Task,
 ) (domain.Task, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 	query := `
-    INSERT INTO ODRProcesing.tasks (title, description, completed, author_user_id, created_at, completed_at)
-    VALUES ($1, $2, $3, $4, $5, $6)
-    RETURNING id, version, title, description, completed, author_user_id, created_at, completed_at;
+    UPDATE ODRProcesing.tasks 
+	SET title=$1, description=$2, completed=$3, completed_at=$4, version = version + 1
+    WHERE id = $5 AND version = $6
+    RETURNING id, version, title, description,
+	completed, author_user_id, created_at, completed_at;
     `
 
 	row := r.pool.QueryRow(
@@ -27,9 +29,9 @@ func (r *TasksRepository) CreateTask(
 		task.Title,
 		task.Description,
 		task.Completed,
-		task.AuthorUserId,
-		task.CreatedAt,
 		task.CompletedAt,
+		task.ID,
+		task.Version,
 	)
 
 	var taskModel TaskModel
@@ -46,12 +48,12 @@ func (r *TasksRepository) CreateTask(
 	)
 
 	if err != nil {
-		if errors.Is(err, core_postgres_pool.ErrViolatesForeignKey) {
+		if errors.Is(err, core_postgres_pool.ErrNoRows) {
 			return domain.Task{}, fmt.Errorf(
-				"%v: user with id=%d: %w",
-				err,
+				"%v: task with id=`%d` concurently accessed: %w",
 				task.AuthorUserId,
-				core_errors.ErrNotFound,
+				err,
+				core_errors.ErrConflict,
 			)
 		}
 

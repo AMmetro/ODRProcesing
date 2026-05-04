@@ -18,9 +18,7 @@ type TaskModel struct {
 }
 
 func TasksDomainsFromModels(tasks []TaskModel) []domain.Task {
-
 	tasksDomain := make([]domain.Task, 0, len(tasks))
-
 	for _, task := range tasks {
 		tasksDomain = append(tasksDomain, domain.NewTask(
 			task.ID,
@@ -33,6 +31,19 @@ func TasksDomainsFromModels(tasks []TaskModel) []domain.Task {
 			task.CompletedAt,
 		))
 	}
-
 	return tasksDomain
+}
+
+func TaskDomainFromModel(task TaskModel) domain.Task {
+	taskDomain := domain.NewTask(
+		task.ID,
+		task.Version,
+		task.Title,
+		task.Description,
+		task.Completed,
+		task.AuthorUserId,
+		task.CreatedAt,
+		task.CompletedAt,
+	)
+	return taskDomain
 }
