@@ -8,6 +8,7 @@ import (
 	"syscall"
 	"time"
 
+	core_config "github.com/AMmetro/ODRProcesing/internal/core/config"
 	core_logger "github.com/AMmetro/ODRProcesing/internal/core/logger"
 	core_pgx_pool "github.com/AMmetro/ODRProcesing/internal/core/repository/postgres/pool/pgx"
 	core_http_middleware "github.com/AMmetro/ODRProcesing/internal/core/transport/http/middleware"
@@ -22,18 +23,17 @@ import (
 	"go.uber.org/zap"
 )
 
-var (
-	timeZone = time.UTC
-)
-
 func main() {
-	time.Local = timeZone
+
 	// ============================================================================
 	// 1. Load CONFIG ENV if exists
 	// ============================================================================
 	if err := godotenv.Load(); err != nil {
 		fmt.Println("no .env file found")
 	}
+
+	cfg := core_config.NewConfigMust()
+	time.Local = cfg.TimeZone
 
 	// ============================================================================
 	// 2. НАСТРОЙКА GRACEFUL SHUTDOWN <-- (Ctrl+C) or  Docker/k8s
@@ -55,7 +55,7 @@ func main() {
 	}
 	defer logger.Close() // Обязательно закрываем файл лога при выходе
 
-	logger.Debug("application time zone", zap.String("timezone", timeZone.String()))
+	logger.Debug("application time zone", zap.Any("timezone", time.Local))
 	logger.Debug("initializing feature", zap.String("feature", "users"))
 	logger.Debug("initializing feature", zap.String("feature", "tasks"))
 
