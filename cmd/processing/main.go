@@ -73,6 +73,8 @@ func main() {
 	usersService := users_service.NewUsersService(usersRepository)
 	usersTransportHTTP := users_transport_http.NewUserHTTPHandler(usersService)
 
+	usersTransportHTTP := users_transport_http.NewUserHTTPHandler(usersService)
+
 	// ============================================================================
 	// 6. SETUP HTTP SERVER
 	// ============================================================================
