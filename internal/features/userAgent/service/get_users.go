@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/AMmetro/ODRProcesing/internal/core/domain"
-	core_errors "github.com/AMmetro/ODRProcesing/internal/core/errors"
+	domain_utils "github.com/AMmetro/ODRProcesing/internal/core/domain/utils"
 )
 
 func (s *UsersService) GetUsers(
@@ -14,14 +14,13 @@ func (s *UsersService) GetUsers(
 	offset *int,
 ) ([]domain.UserAgent, error) {
 	var users []domain.UserAgent
-	if limit != nil && *limit < 0 {
-		return nil, fmt.Errorf("limit must be non negative %w", core_errors.ErrInvalidArgument)
-	}
-	if offset != nil && *offset < 0 {
-		return nil, fmt.Errorf("offset must be non negative %w", core_errors.ErrInvalidArgument)
+
+	err := domain_utils.LimitOffsetValidation(limit, offset)
+	if err != nil {
+		return []domain.UserAgent{}, fmt.Errorf("validate limit and offset: %w", err)
 	}
 
-	users, err := s.usersRepository.GetUsers(ctx, limit, offset)
+	users, err = s.usersRepository.GetUsers(ctx, limit, offset)
 	if err != nil {
 		return []domain.UserAgent{}, fmt.Errorf("get users from repository: %w", err)
 	}
