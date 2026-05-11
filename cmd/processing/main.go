@@ -13,6 +13,9 @@ import (
 	core_pgx_pool "github.com/AMmetro/ODRProcesing/internal/core/repository/postgres/pool/pgx"
 	core_http_middleware "github.com/AMmetro/ODRProcesing/internal/core/transport/http/middleware"
 	core_http_server "github.com/AMmetro/ODRProcesing/internal/core/transport/http/server"
+	statistics_postgres_repository "github.com/AMmetro/ODRProcesing/internal/features/statistics/repository/postgres"
+	statistics_service "github.com/AMmetro/ODRProcesing/internal/features/statistics/service"
+	statistics_transport_http "github.com/AMmetro/ODRProcesing/internal/features/statistics/transport/http"
 	tasks_postgres_repository "github.com/AMmetro/ODRProcesing/internal/features/tasks/repository/postgress"
 	tasks_service "github.com/AMmetro/ODRProcesing/internal/features/tasks/service"
 	tasks_transport_http "github.com/AMmetro/ODRProcesing/internal/features/tasks/transport/http"
@@ -83,6 +86,10 @@ func main() {
 	tasksService := tasks_service.NewTasksService(tasksRepository)
 	tasksTransportHTTP := tasks_transport_http.NewTasksHTTPHandler(tasksService)
 
+	statisticsRepository := statistics_postgres_repository.NewStatisticsRepository(pool)
+	statisticsService := statistics_service.NewStatisticsService(statisticsRepository)
+	statisticsTransportHTTP := statistics_transport_http.NewStatisticsHTTPHandler(statisticsService)
+
 	// ============================================================================
 	// 6. SETUP HTTP SERVER
 	// ============================================================================
@@ -104,6 +111,7 @@ func main() {
 
 	apiVersionRouterV1.RegisterRoutes(usersTransportHTTP.Routes()...)
 	apiVersionRouterV1.RegisterRoutes(tasksTransportHTTP.Routes()...)
+	apiVersionRouterV1.RegisterRoutes(statisticsTransportHTTP.Routes()...)
 
 	// apiVersionRouterV2 := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion2,
 	// 	core_http_middleware.Dummy("api v2 middleware"),
