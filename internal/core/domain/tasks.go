@@ -143,3 +143,15 @@ func (t TaskPatch) Validate() error {
 	}
 	return nil
 }
+
+func (t *Task) CompleteionDuration() *time.Duration {
+	if !t.Completed {
+		return nil
+	}
+	if t.CompletedAt == nil {
+		return nil
+	}
+
+	duration := t.CompletedAt.Sub(t.CreatedAt)
+	return &duration
+}

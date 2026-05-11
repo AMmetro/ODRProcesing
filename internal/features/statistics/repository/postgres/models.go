@@ -1,19 +1,49 @@
 package statistics_postgres_repository
 
-import "github.com/AMmetro/ODRProcesing/internal/core/domain"
+import (
+	"time"
 
-type StatisticsModel struct {
-	TotalUsers     int
-	TotalTasks     int
-	CompletedTasks int
-	PendingTasks   int
+	"github.com/AMmetro/ODRProcesing/internal/core/domain"
+)
+
+type TaskModel struct {
+	ID           int
+	Version      int
+	Title        string
+	Description  *string
+	Completed    bool
+	AuthorUserId int
+	CreatedAt    time.Time
+	CompletedAt  *time.Time
 }
 
-func (m StatisticsModel) ToDomain() domain.StatisticsSummary {
-	return domain.NewStatisticsSummary(
-		m.TotalUsers,
-		m.TotalTasks,
-		m.CompletedTasks,
-		m.PendingTasks,
+func TasksDomainsFromModels(tasks []TaskModel) []domain.Task {
+	tasksDomain := make([]domain.Task, 0, len(tasks))
+	for _, task := range tasks {
+		tasksDomain = append(tasksDomain, domain.NewTask(
+			task.ID,
+			task.Version,
+			task.Title,
+			task.Description,
+			task.Completed,
+			task.AuthorUserId,
+			task.CreatedAt,
+			task.CompletedAt,
+		))
+	}
+	return tasksDomain
+}
+
+func TaskDomainFromModel(task TaskModel) domain.Task {
+	taskDomain := domain.NewTask(
+		task.ID,
+		task.Version,
+		task.Title,
+		task.Description,
+		task.Completed,
+		task.AuthorUserId,
+		task.CreatedAt,
+		task.CompletedAt,
 	)
+	return taskDomain
 }

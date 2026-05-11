@@ -2,6 +2,7 @@ package statistics_service
 
 import (
 	"context"
+	"time"
 
 	"github.com/AMmetro/ODRProcesing/internal/core/domain"
 )
@@ -11,9 +12,12 @@ type StatisticsService struct {
 }
 
 type StatisticsRepository interface {
-	GetStatistics(
+	GetTasks(
 		ctx context.Context,
-	) (domain.StatisticsSummary, error)
+		userId *int,
+		from *time.Time,
+		to *time.Time,
+	) ([]domain.Task, error)
 }
 
 func NewStatisticsService(
@@ -22,19 +26,4 @@ func NewStatisticsService(
 	return &StatisticsService{
 		statisticsRepository: statisticsRepository,
 	}
-}
-
-func (s *StatisticsService) GetStatistics(
-	ctx context.Context,
-) (domain.StatisticsSummary, error) {
-	summary, err := s.statisticsRepository.GetStatistics(ctx)
-	if err != nil {
-		return domain.StatisticsSummary{}, err
-	}
-
-	if summary.TotalUsers > 0 {
-		// summary.TasksPerUser = float64(summary.TotalTasks) / float64(summary.TotalUsers)
-	}
-
-	return summary, nil
 }
