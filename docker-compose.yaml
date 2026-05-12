@@ -1,4 +1,27 @@
  services:
+# ---------------------------- container for app - start on port 5050
+  # odrprocesing:
+  #   build:
+  #     context: .
+  #     dockerfile: cmd/processing/Dockerfile
+  #   container_name: ODRProcesing-env
+  #   environment:
+  #     HTTP_ADDR: ":5050"
+  #     HTTP_SHUTDOWN_TIMEOUT: ${HTTP_SHUTDOWN_TIMEOUT}
+  #     POSTGRES_HOST: ODRProcesing-postgres
+  #     POSTGRES_USER: ${POSTGRES_USER}
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  #     POSTGRES_DB: ${POSTGRES_DB}
+  #     POSTGRES_TIMEOUT: ${POSTGRES_TIMEOUT}
+  #     LOGGER_LEVEL: ${LOGGER_LEVEL}
+  #     TIME_ZONE: ${TIME_ZONE}
+  #     LOGGER_FOLDER: ${LOGGER_FOLDER}
+  #   ports:
+  #     - "5050:5050"
+  #   restart: always
+
+
+#  container for DB
   ODRProcesing-postgres:
     image: postgres:16
     container_name: ODRProcesing-env-postgres

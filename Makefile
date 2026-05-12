@@ -34,7 +34,7 @@ migrate-action:
 	--entrypoint migrate \
 	ODRProcesing-postgres-migrate \
 	-path=/migrations \
-	-database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@ODRProcesing-postgres:5432/${POSTGRES_DB}?sslmode=disable \
+	-database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@odrprocesing-postgres:5432/${POSTGRES_DB}?sslmode=disable \
 	${action}
 
 logs-cleanup:
@@ -46,8 +46,16 @@ logs-cleanup:
 		echo "Очистка логов отменена"; \
 	fi
 
-todoapp-run:
+odrprocesing-run:
+# unix
+# 	export LOGGER_FOLDER=$(PROJECT_ROOT)/out/logs && \
+# 	go mod tidy && \
+# 	go run cmd/processing/main.go
+	powershell -Command "$$env:LOGGER_FOLDER='$(PROJECT_ROOT)/out/logs'; go mod tidy; go run cmd/processing/main.go"
 	go mod tidy && \
 	go run cmd/processing/main.go
+
+odrprocesing-deploy:
+	docker compose up -d --build ODRProcesing
 
 	
