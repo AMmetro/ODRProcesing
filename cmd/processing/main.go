@@ -24,6 +24,8 @@ import (
 	users_transport_http "github.com/AMmetro/ODRProcesing/internal/features/userAgent/transport/http"
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"
+
+	_ "github.com/AMmetro/ODRProcesing/docs"
 )
 
 func main() {
@@ -120,6 +122,8 @@ func main() {
 
 	// setup router - to HTTP server
 	httpServer.RegisterAPIRoute(apiVersionRouterV1)
+	httpServer.RegisterSwagger()
+
 	// httpServer.RegisterAPIRoute(apiVersionRouterV1, apiVersionRouterV2)
 
 	// ============================================================================

@@ -42,6 +42,20 @@
     - ./migrations:/migrations
     # - ${PROJECT_ROOT}/migrations:/migrations
 
+  swagger:
+    build:
+  #   context: ${PROJECT_ROOT}
+      context: .
+      dockerfile_inline: |
+        FROM golang:1.26.1-alpine
+        RUN apk add --no-cache git
+        RUN go install github.com/swaggo/swag/cmd/swag@v1.16.6
+        WORKDIR /code
+        ENTRYPOINT ["swag"]
+    volumes:
+#      - ${PROJECT_ROOT}:/code
+      - ./:/code
+
   # ODRProcesing-port-forwarder:
   #  image: alpine/socat:1.8.0.3
   #  container_name: ODRProcesing-port-forwarder
