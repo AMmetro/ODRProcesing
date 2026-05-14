@@ -554,10 +554,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "error": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "full error text"
                 },
                 "message": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "short error message"
                 }
             }
         },
@@ -705,16 +707,20 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "full_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "John Doe"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 10
                 },
                 "phone_number": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "+1234567890"
                 },
                 "version": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 3
                 }
             }
         }

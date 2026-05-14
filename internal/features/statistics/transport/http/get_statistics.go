@@ -14,7 +14,7 @@ type GetStatisticsResponse struct {
 	TasksCreated              int      `json:"task_created"`
 	TasksCompleted            int      `json:"task_completed"`
 	TaskCompletedRate         *float64 `json:"task_completed_rate"`
-	TaskAverageComplitionTime *string  `json:"task_average_complition_time"` // "1m30sec"
+	TaskAverageComplitionTime *string  `json:"task_average_complition_time" example:"1m30s`
 }
 
 // @Summary Get Statistics

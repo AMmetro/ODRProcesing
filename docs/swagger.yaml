@@ -3,8 +3,10 @@ definitions:
   github_com_AMmetro_ODRProcesing_internal_core_transport_http_response.ErrorResponse:
     properties:
       error:
+        example: full error text
         type: string
       message:
+        example: short error message
         type: string
     type: object
   github_com_AMmetro_ODRProcesing_internal_core_transport_http_types.Nullable-bool:
@@ -105,12 +107,16 @@ definitions:
   internal_features_userAgent_transport_http.UserDTOResponse:
     properties:
       full_name:
+        example: John Doe
         type: string
       id:
+        example: 10
         type: integer
       phone_number:
+        example: "+1234567890"
         type: string
       version:
+        example: 3
         type: integer
     type: object
 host: localhost:8090
