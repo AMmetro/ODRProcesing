@@ -8,6 +8,18 @@ import (
 	core_http_response "github.com/AMmetro/ODRProcesing/internal/core/transport/http/response"
 )
 
+// @Summary Get Tasks
+// @Description Retrieve a list of tasks with optional filtering by user ID, limit, and offset
+// @Tags tasks
+// @Accept json
+// @Produce json
+// @Param limit query int false "Number of tasks to retrieve" minimum(1) maximum(100)
+// @Param offset query int false "Number of tasks to skip" minimum(0)
+// @Param userId query int false "Filter tasks by user ID"
+// @Success 200 {array} TaskDTOResponse
+// @Failure 400 {object} core_http_response.ErrorResponse "Bad Request"
+// @Failure 500 {object} core_http_response.ErrorResponse "Bad Request"
+// @Router /tasks [get]
 func (h *TasksHTTPHandler) GetTasks(rw http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()

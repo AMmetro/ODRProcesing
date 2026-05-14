@@ -10,6 +10,17 @@ import (
 
 type GetUsersResponse []UserDTOResponse
 
+// @Summary Get Users
+// @Description Retrieve a list of users with optional limit and offset
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param limit query int false "Number of users to retrieve" minimum(1) maximum(100)
+// @Param offset query int false "Number of users to skip" minimum(0)
+// @Success 200 {array} UserDTOResponse
+// @Failure 400 {object} core_http_response.ErrorResponse "Bad Request"
+// @Failure 500 {object} core_http_response.ErrorResponse "Bad Request"
+// @Router /users [get]
 func (h *UsersHTTPHandler) GetUsers(rw http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()

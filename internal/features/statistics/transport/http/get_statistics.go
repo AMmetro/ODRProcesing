@@ -17,6 +17,18 @@ type GetStatisticsResponse struct {
 	TaskAverageComplitionTime *string  `json:"task_average_complition_time"` // "1m30sec"
 }
 
+// @Summary Get Statistics
+// @Description Retrieve statistics for tasks within a date range and optionally filtered by user ID
+// @Tags statistics
+// @Accept json
+// @Produce json
+// @Param userId query int false "User ID to filter statistics"
+// @Param from query string false "Start date in YYYY-MM-DD format"
+// @Param to query string false "End date in YYYY-MM-DD format"
+// @Success 200 {object} GetStatisticsResponse
+// @Failure 400 {object} core_http_response.ErrorResponse "Bad Request"
+// @Failure 500 {object} core_http_response.ErrorResponse "Bad Request"
+// @Router /statistics [get]
 func (h *StatisticsHTTPHandler) GetStatistics(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)

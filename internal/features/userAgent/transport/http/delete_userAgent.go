@@ -12,6 +12,17 @@ import (
 
 type DeleteUserAgentResponse UserDTOResponse
 
+// @Summary Delete User
+// @Description Delete a user by ID
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param id path int true "User ID"
+// @Success 204 "No Content"
+// @Failure 400 {object} core_http_response.ErrorResponse "Bad Request"
+// @Failure 404 {object} core_http_response.ErrorResponse "Not Found"
+// @Failure 500 {object} core_http_response.ErrorResponse "Bad Request"
+// @Router /user/{id} [delete]
 func (h *UsersHTTPHandler) DeleteUserAgentRequest(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)

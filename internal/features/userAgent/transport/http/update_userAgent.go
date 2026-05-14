@@ -46,6 +46,17 @@ func (r *UpdateUserRequest) Validate() error {
 
 type UpdateUserAgentResponse UserDTOResponse
 
+// @Summary Update User
+// @Description Update an existing user by ID
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param id path int true "User ID"
+// @Param user body UpdateUserRequest true "User update data"
+// @Success 200 {object} UserDTOResponse
+// @Failure 404 {object} core_http_response.ErrorResponse "Not Found"
+// @Failure 500 {object} core_http_response.ErrorResponse "Bad Request"
+// @Router /user/{id} [patch]
 func (h *UsersHTTPHandler) UpdateUserRequest(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)

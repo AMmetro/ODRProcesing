@@ -10,6 +10,16 @@ import (
 
 type GetUsersAgentResponse UserDTOResponse
 
+// @Summary Get User
+// @Description Retrieve a single user by ID
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param id path int true "User ID"
+// @Success 200 {object} UserDTOResponse
+// @Failure 404 {object} core_http_response.ErrorResponse "Not Found"
+// @Failure 500 {object} core_http_response.ErrorResponse "Bad Request"
+// @Router /user/{id} [get]
 func (h *UsersHTTPHandler) GetUserAgent(rw http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()

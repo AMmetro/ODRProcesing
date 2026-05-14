@@ -1,3 +1,9 @@
+// @title ODR Processing API
+// @version 1.0
+// @description API for managing tasks, statistics, and user agents in ODR Processing system
+// @host localhost:8090
+// @BasePath /api/v1
+// @schemes http https
 package main
 
 import (
