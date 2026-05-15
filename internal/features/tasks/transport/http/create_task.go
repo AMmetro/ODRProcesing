@@ -24,6 +24,16 @@ type CreateTaskResponse TaskDTOResponse
 // 	NewOptions []any
 // }
 
+// @Summary Create Task
+// @Description Create a new task
+// @Tags tasks
+// @Accept json
+// @Produce json
+// @Param task body CreateTaskRequest true "Task data"
+// @Success 200 {object} TaskDTOResponse
+// @Failure 400 {object} core_http_response.ErrorResponse "Bad Request"
+// @Failure 500 {object} core_http_response.ErrorResponse "Bad Request"
+// @Router /tasks [post]
 func (h *TasksHTTPHandler) CreateTask(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)

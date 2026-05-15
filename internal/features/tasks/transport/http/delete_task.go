@@ -8,6 +8,16 @@ import (
 	core_http_response "github.com/AMmetro/ODRProcesing/internal/core/transport/http/response"
 )
 
+// @Summary Delete Task
+// @Description Delete a task by ID
+// @Tags tasks
+// @Accept json
+// @Produce json
+// @Param id path int true "Task ID"
+// @Success 204 "No Content"
+// @Failure 404 {object} core_http_response.ErrorResponse "Bad Request"
+// @Failure 500 {object} core_http_response.ErrorResponse "Bad Request"
+// @Router /task/{id} [delete]
 func (h *TasksHTTPHandler) DeleteTask(rw http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()

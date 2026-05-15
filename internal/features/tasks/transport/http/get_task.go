@@ -10,6 +10,16 @@ import (
 
 type GetTaskResponse TaskDTOResponse
 
+// @Summary Get Task
+// @Description Retrieve a single task by ID
+// @Tags tasks
+// @Accept json
+// @Produce json
+// @Param id path int true "Task ID"
+// @Success 200 {object} TaskDTOResponse
+// @Failure 404 {object} core_http_response.ErrorResponse "Not Found"
+// @Failure 500 {object} core_http_response.ErrorResponse "Bad Request"
+// @Router /task/{id} [get]
 func (h *TasksHTTPHandler) GetTask(rw http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()

@@ -1,3 +1,9 @@
+// @title ODR Processing API
+// @version 1.0
+// @description API for managing tasks, statistics, and user agents in ODR Processing system
+// @host localhost:8090
+// @BasePath /api/v1
+// @schemes http https
 package main
 
 import (
@@ -24,6 +30,8 @@ import (
 	users_transport_http "github.com/AMmetro/ODRProcesing/internal/features/userAgent/transport/http"
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"
+
+	_ "github.com/AMmetro/ODRProcesing/docs"
 )
 
 func main() {
@@ -98,6 +106,7 @@ func main() {
 	httpServer := core_http_server.NewHTTPServer(
 		core_http_server.NewConfigMust(),
 		logger,
+		core_http_middleware.CORS(cfg.ADDR),
 		core_http_middleware.RequestID(),
 		core_http_middleware.Logger(logger),
 		core_http_middleware.Trace(),
@@ -120,6 +129,8 @@ func main() {
 
 	// setup router - to HTTP server
 	httpServer.RegisterAPIRoute(apiVersionRouterV1)
+	httpServer.RegisterSwagger()
+
 	// httpServer.RegisterAPIRoute(apiVersionRouterV1, apiVersionRouterV2)
 
 	// ============================================================================

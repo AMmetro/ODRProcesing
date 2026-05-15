@@ -58,4 +58,17 @@ odrprocesing-run:
 odrprocesing-deploy:
 	docker compose up -d --build ODRProcesing
 
+swagger-gen:
+	docker compose run --rm swagger \
+	init \
+	-g cmd/processing/main.go \
+	-o docs \
+	--parseInternal \
+	--parseDependency
+
+
+
+
+
+
 	

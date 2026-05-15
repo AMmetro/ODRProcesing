@@ -54,6 +54,17 @@ func (r *UpdateTaskRequest) Validate() error {
 	return nil
 }
 
+// @Summary Update Task
+// @Description Update an existing task by ID
+// @Tags tasks
+// @Accept json
+// @Produce json
+// @Param id path int true "Task ID"
+// @Param task body UpdateTaskRequest true "Task update data"
+// @Success 200 {object} TaskDTOResponse
+// @Failure 404 {object} core_http_response.ErrorResponse "Not Found"
+// @Failure 500 {object} core_http_response.ErrorResponse "Bad Request"
+// @Router /task/{id} [patch]
 func (h *TasksHTTPHandler) UpdateTask(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)

@@ -8,6 +8,7 @@ import (
 
 type Config struct {
 	TimeZone *time.Location
+	ADDR     string
 }
 
 func NewConfig() (*Config, error) {
@@ -20,6 +21,12 @@ func NewConfig() (*Config, error) {
 	tz := os.Getenv("TIME_ZONE")
 	if tz == "" {
 		tz = "UTC"
+	}
+
+	ADDR := os.Getenv("ADDR")
+
+	if ADDR == "" {
+		ADDR = "localhost:8090"
 	}
 
 	zone, err := time.LoadLocation(tz)

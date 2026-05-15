@@ -3,10 +3,10 @@ package users_transport_http
 import "github.com/AMmetro/ODRProcesing/internal/core/domain"
 
 type UserDTOResponse struct {
-	ID          int    `json:"id"`
-	Version     int    `json:"version"`
-	FullName    string `json:"full_name"`
-	PhoneNumber string `json:"phone_number"`
+	ID          int    `json:"id" example:"10"`
+	Version     int    `json:"version" example:"3"`
+	FullName    string `json:"full_name" example:"John Doe"`
+	PhoneNumber string `json:"phone_number" example:"+1234567890"`
 }
 
 func UserDtoFromDomain(userAgent domain.UserAgent) UserDTOResponse {
