@@ -28,6 +28,9 @@ import (
 	users_postgres_repository "github.com/AMmetro/ODRProcesing/internal/features/userAgent/repository/postgress"
 	users_service "github.com/AMmetro/ODRProcesing/internal/features/userAgent/service"
 	users_transport_http "github.com/AMmetro/ODRProcesing/internal/features/userAgent/transport/http"
+	web_postgres_repository "github.com/AMmetro/ODRProcesing/internal/features/web/repository/postgress"
+	web_service "github.com/AMmetro/ODRProcesing/internal/features/web/service"
+	web_transport_http "github.com/AMmetro/ODRProcesing/internal/features/web/transport/http"
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"
 
@@ -98,6 +101,10 @@ func main() {
 	statisticsService := statistics_service.NewStatisticsService(statisticsRepository)
 	statisticsTransportHTTP := statistics_transport_http.NewStatisticsHTTPHandler(statisticsService)
 
+	webRepository := web_postgres_repository.NewWebRepository()
+	webService := web_service.NewWebService(webRepository)
+	webServiceTransportHTTP := web_transport_http.NewWebHTTPHandler(webService)
+
 	// ============================================================================
 	// 6. SETUP HTTP SERVER
 	// ============================================================================
@@ -121,6 +128,7 @@ func main() {
 	apiVersionRouterV1.RegisterRoutes(usersTransportHTTP.Routes()...)
 	apiVersionRouterV1.RegisterRoutes(tasksTransportHTTP.Routes()...)
 	apiVersionRouterV1.RegisterRoutes(statisticsTransportHTTP.Routes()...)
+	apiVersionRouterV1.RegisterRoutes(webServiceTransportHTTP.Routes()...)
 
 	// apiVersionRouterV2 := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion2,
 	// 	core_http_middleware.Dummy("api v2 middleware"),
