@@ -49,6 +49,8 @@ func main() {
 	cfg := core_config.NewConfigMust()
 	time.Local = cfg.TimeZone
 
+	httpConfig := core_http_server.NewConfigMust()
+
 	// ============================================================================
 	// 2. НАСТРОЙКА GRACEFUL SHUTDOWN <-- (Ctrl+C) or  Docker/k8s
 	// ============================================================================
@@ -111,9 +113,9 @@ func main() {
 	logger.Debug("initializing HTTP server")
 
 	httpServer := core_http_server.NewHTTPServer(
-		core_http_server.NewConfigMust(),
+		httpConfig,
 		logger,
-		core_http_middleware.CORS(cfg.ADDR),
+		core_http_middleware.CORS(httpConfig.AllowedOrigins),
 		core_http_middleware.RequestID(),
 		core_http_middleware.Logger(logger),
 		core_http_middleware.Trace(),
@@ -128,7 +130,6 @@ func main() {
 	apiVersionRouterV1.RegisterRoutes(usersTransportHTTP.Routes()...)
 	apiVersionRouterV1.RegisterRoutes(tasksTransportHTTP.Routes()...)
 	apiVersionRouterV1.RegisterRoutes(statisticsTransportHTTP.Routes()...)
-	apiVersionRouterV1.RegisterRoutes(webServiceTransportHTTP.Routes()...)
 
 	// apiVersionRouterV2 := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion2,
 	// 	core_http_middleware.Dummy("api v2 middleware"),
@@ -138,6 +139,7 @@ func main() {
 	// setup router - to HTTP server
 	httpServer.RegisterAPIRoute(apiVersionRouterV1)
 	httpServer.RegisterSwagger()
+	httpServer.RegisterRoutes(webServiceTransportHTTP.Routes()...)
 
 	// httpServer.RegisterAPIRoute(apiVersionRouterV1, apiVersionRouterV2)
 

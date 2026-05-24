@@ -8,6 +8,7 @@
   #   environment:
   #     HTTP_ADDR: ":5050"
   #     HTTP_SHUTDOWN_TIMEOUT: ${HTTP_SHUTDOWN_TIMEOUT}
+  #     ALLOW_ORIGIN: ${ALLOW_ORIGIN} 
   #     POSTGRES_HOST: ODRProcesing-postgres
   #     POSTGRES_USER: ${POSTGRES_USER}
   #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}

@@ -63,6 +63,16 @@ func (s *HTTPServer) RegisterSwagger() {
 		})
 }
 
+func (s *HTTPServer) RegisterRoutes(routes ...Route) {
+	for _, router := range routes {
+		pattern := fmt.Sprintf("%s %s", router.Method, router.Path)
+		s.mux.Handle(
+			pattern,
+			router.WithMiddleware(),
+		)
+	}
+}
+
 func (s *HTTPServer) Run(ctx context.Context) error {
 	// 1. apply middleware to router
 	mux := core_http_middleware.ChainMiddleware(s.mux, s.middleware...)

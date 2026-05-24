@@ -75,6 +75,14 @@ func (h *HTTPResponseHandler) PanicResponse(p any, msg string) {
 	h.errorResponse(statusCode, err, msg)
 }
 
+func (h *HTTPResponseHandler) HTMLResponse(html []byte) {
+	h.rw.Header().Set("Content-Type", "text/html; charset=utf-8")
+	h.rw.WriteHeader(http.StatusOK)
+	if _, err := h.rw.Write(html); err != nil {
+		h.log.Error("write HTML HTTP response", zap.Error(err))
+	}
+}
+
 func (h *HTTPResponseHandler) errorResponse(
 	statusCode int,
 	err error,
