@@ -9,7 +9,7 @@ services:
     environment:
       HTTP_ADDR: ":5050"
       HTTP_SHUTDOWN_TIMEOUT: ${HTTP_SHUTDOWN_TIMEOUT}
-      ALLOW_ORIGIN: ${ALLOW_ORIGIN}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
       POSTGRES_HOST: ODRProcesing-postgres
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -24,19 +24,19 @@ services:
       - ODRProcesing-postgres
     restart: always
 
-  reservation:
-    build:
-      context: .
-      dockerfile: services/reservation/dockerfile
-    container_name: ODRProcesing-reservation
-    environment:
-      HTTP_ADDR: ":8091"
-      KAFKA_BROKER: kafka:9092
-    ports:
-      - "8091:8091"
-    depends_on:
-      - kafka
-    restart: always
+  # reservation:
+  #   build:
+  #     context: .
+  #     dockerfile: services/reservation/dockerfile
+  #   container_name: ODRProcesing-reservation
+  #   environment:
+  #     HTTP_ADDR: ":8091"
+  #     KAFKA_BROKER: kafka:9092
+  #   ports:
+  #     - "8091:8091"
+  #   depends_on:
+  #     - kafka
+  #   restart: always
 
   ODRProcesing-postgres:
     image: postgres:16
@@ -57,7 +57,7 @@ services:
       - ./migrations:/migrations
 
   zookeeper:
-    image: confluentinc/cp-zookeeper:8.8.1
+    image: confluentinc/cp-zookeeper:7.4.0
     container_name: ODRProcesing-zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
@@ -67,7 +67,7 @@ services:
     restart: always
 
   kafka:
-    image: confluentinc/cp-kafka:8.8.1
+    image: confluentinc/cp-kafka:7.4.0
     container_name: ODRProcesing-kafka
     depends_on:
       - zookeeper
@@ -76,9 +76,8 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_HOST://kafka:9092
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     restart: always
 

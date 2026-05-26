@@ -4,10 +4,12 @@ import (
 	"context"
 
 	"github.com/AMmetro/ODRProcesing/shared/pkg/core/domain"
+	"github.com/AMmetro/ODRProcesing/shared/pkg/core/messaging"
 )
 
 type TasksService struct {
 	tasksRepository TasksRepository
+	kafkaProducer   messaging.KafkaProducer
 }
 
 type TasksRepository interface {
@@ -41,9 +43,10 @@ type TasksRepository interface {
 
 func NewTasksService(
 	tasksRepository TasksRepository,
+	kafkaProducer messaging.KafkaProducer,
 ) *TasksService {
 	return &TasksService{
 		tasksRepository: tasksRepository,
+		kafkaProducer:   kafkaProducer,
 	}
 }
-

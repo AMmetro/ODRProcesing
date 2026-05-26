@@ -12,6 +12,7 @@ import (
 	reservation_repository "github.com/AMmetro/ODRProcesing/services/reservation/internal/features/reservation/repository/inmemory"
 	reservation_service "github.com/AMmetro/ODRProcesing/services/reservation/internal/features/reservation/service"
 	reservation_transport_http "github.com/AMmetro/ODRProcesing/services/reservation/internal/features/reservation/transport/http"
+	"github.com/AMmetro/ODRProcesing/shared/pkg/core/messaging"
 )
 
 func main() {
@@ -20,6 +21,28 @@ func main() {
 	repository := reservation_repository.NewReservationRepository()
 	service := reservation_service.NewReservationService(repository)
 	handler := reservation_transport_http.NewReservationHTTPHandler(service)
+
+	// Initialize Kafka Consumer
+	kafkaConsumer, err := messaging.NewKafkaConsumer(
+		[]string{"localhost:9092"},
+		"reservation-group",
+		"tasks-events",
+	)
+	if err != nil {
+		log.Fatalf("failed to init kafka consumer: %v", err)
+	}
+	defer kafkaConsumer.Close()
+
+	// Setup message handler
+	kafkaConsumer.SetMessageHandler(func(message []byte) error {
+		return service.ProcessTaskMessage(context.Background(), message)
+	})
+
+	// Start consumer
+	ctx := context.Background()
+	if err := kafkaConsumer.Start(ctx); err != nil {
+		log.Fatalf("failed to start kafka consumer: %v", err)
+	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/v1/reservation", handler.GetItems)
@@ -43,9 +66,9 @@ func main() {
 
 	log.Println("reservation service shutting down...")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	if err := srv.Shutdown(ctx); err != nil {
+	if err := srv.Shutdown(shutdownCtx); err != nil {
 		log.Fatalf("reservation server graceful shutdown failed: %v", err)
 	}
 }

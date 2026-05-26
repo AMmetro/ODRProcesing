@@ -14,11 +14,6 @@ import (
 	"syscall"
 	"time"
 
-	core_config "github.com/AMmetro/ODRProcesing/shared/pkg/core/config"
-	core_logger "github.com/AMmetro/ODRProcesing/shared/pkg/core/logger"
-	core_pgx_pool "github.com/AMmetro/ODRProcesing/shared/pkg/core/repository/postgres/pool/pgx"
-	core_http_middleware "github.com/AMmetro/ODRProcesing/shared/pkg/core/transport/http/middleware"
-	core_http_server "github.com/AMmetro/ODRProcesing/shared/pkg/core/transport/http/server"
 	statistics_postgres_repository "github.com/AMmetro/ODRProcesing/services/processing/internal/features/statistics/repository/postgres"
 	statistics_service "github.com/AMmetro/ODRProcesing/services/processing/internal/features/statistics/service"
 	statistics_transport_http "github.com/AMmetro/ODRProcesing/services/processing/internal/features/statistics/transport/http"
@@ -31,6 +26,12 @@ import (
 	web_postgres_repository "github.com/AMmetro/ODRProcesing/services/processing/internal/features/web/repository/postgress"
 	web_service "github.com/AMmetro/ODRProcesing/services/processing/internal/features/web/service"
 	web_transport_http "github.com/AMmetro/ODRProcesing/services/processing/internal/features/web/transport/http"
+	core_config "github.com/AMmetro/ODRProcesing/shared/pkg/core/config"
+	core_logger "github.com/AMmetro/ODRProcesing/shared/pkg/core/logger"
+	core_messaging "github.com/AMmetro/ODRProcesing/shared/pkg/core/messaging"
+	core_pgx_pool "github.com/AMmetro/ODRProcesing/shared/pkg/core/repository/postgres/pool/pgx"
+	core_http_middleware "github.com/AMmetro/ODRProcesing/shared/pkg/core/transport/http/middleware"
+	core_http_server "github.com/AMmetro/ODRProcesing/shared/pkg/core/transport/http/server"
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"
 
@@ -95,8 +96,15 @@ func main() {
 	usersService := users_service.NewUsersService(usersRepository)
 	usersTransportHTTP := users_transport_http.NewUserHTTPHandler(usersService)
 
+	// Initialize Kafka Producer
+	kafkaProducer, err := core_messaging.NewKafkaProducer([]string{"localhost:9092"})
+	if err != nil {
+		logger.Fatal("Failed to init kafka producer", zap.Error(err))
+	}
+	defer kafkaProducer.Close()
+
 	tasksRepository := tasks_postgres_repository.NewTasksRepository(pool)
-	tasksService := tasks_service.NewTasksService(tasksRepository)
+	tasksService := tasks_service.NewTasksService(tasksRepository, kafkaProducer)
 	tasksTransportHTTP := tasks_transport_http.NewTasksHTTPHandler(tasksService)
 
 	statisticsRepository := statistics_postgres_repository.NewStatisticsRepository(pool)
@@ -151,4 +159,3 @@ func main() {
 		logger.Error("failed to run HTTP server", zap.Error(err))
 	}
 }
-
