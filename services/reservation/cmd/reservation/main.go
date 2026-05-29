@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -16,61 +17,134 @@ import (
 )
 
 func main() {
-	addr := getEnv("HTTP_ADDR", ":8091")
+
+	// =========================================================
+	// CONFIG
+	// =========================================================
+
+	httpAddr := getEnv("HTTP_ADDR", ":8091")
+
+	kafkaBrokers := strings.Split(
+		getEnv("KAFKA_BROKERS", "localhost:9092"),
+		",",
+	)
+
+	kafkaGroupID := getEnv("KAFKA_GROUP_ID", "reservation-group")
+
+	taskEventsTopic := getEnv("KAFKA_TASK_EVENTS_TOPIC", "tasks-events")
+
+	// =========================================================
+	// ROOT CONTEXT
+	// =========================================================
+
+	appCtx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// =========================================================
+	// REPOSITORY
+	// =========================================================
 
 	repository := reservation_repository.NewReservationRepository()
-	service := reservation_service.NewReservationService(repository)
+
+	// =========================================================
+	// KAFKA PRODUCER
+	// =========================================================
+
+	kafkaProducer, err := messaging.NewKafkaProducer(kafkaBrokers)
+	if err != nil {
+		log.Fatalf("failed to init kafka producer: %v", err)
+	}
+	defer kafkaProducer.Close()
+
+	// =========================================================
+	// SERVICE
+	// =========================================================
+
+	service := reservation_service.NewReservationService(
+		repository,
+		kafkaProducer,
+	)
+
+	// =========================================================
+	// HTTP HANDLER
+	// =========================================================
+
 	handler := reservation_transport_http.NewReservationHTTPHandler(service)
 
-	// Initialize Kafka Consumer
+	// =========================================================
+	// KAFKA CONSUMER
+	// =========================================================
+
 	kafkaConsumer, err := messaging.NewKafkaConsumer(
-		[]string{"localhost:9092"},
-		"reservation-group",
-		"tasks-events",
+		kafkaBrokers,
+		kafkaGroupID,
+		taskEventsTopic,
 	)
 	if err != nil {
 		log.Fatalf("failed to init kafka consumer: %v", err)
 	}
 	defer kafkaConsumer.Close()
 
-	// Setup message handler
 	kafkaConsumer.SetMessageHandler(func(message []byte) error {
-		return service.ProcessTaskMessage(context.Background(), message)
+		return service.ProcessTaskMessage(appCtx, message)
 	})
 
-	// Start consumer
-	ctx := context.Background()
-	if err := kafkaConsumer.Start(ctx); err != nil {
+	if err := kafkaConsumer.Start(appCtx); err != nil {
 		log.Fatalf("failed to start kafka consumer: %v", err)
 	}
+
+	// =========================================================
+	// HTTP SERVER
+	// =========================================================
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/v1/reservation", handler.GetItems)
 
 	srv := &http.Server{
-		Addr:    addr,
-		Handler: mux,
+		Addr:              httpAddr,
+		Handler:           mux,
+		ReadHeaderTimeout: 5 * time.Second,
 	}
 
-	log.Printf("reservation service starting on %s", addr)
-
 	go func() {
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		log.Printf("reservation service started on %s", httpAddr)
+
+		if err := srv.ListenAndServe(); err != nil &&
+			err != http.ErrServerClosed {
+
 			log.Fatalf("reservation server failed: %v", err)
 		}
 	}()
 
+	// =========================================================
+	// GRACEFUL SHUTDOWN
+	// =========================================================
+
 	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+
+	signal.Notify(
+		stop,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+	)
+
 	<-stop
 
 	log.Println("reservation service shutting down...")
 
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+	cancel()
+
+	shutdownCtx, shutdownCancel := context.WithTimeout(
+		context.Background(),
+		10*time.Second,
+	)
+	defer shutdownCancel()
+
 	if err := srv.Shutdown(shutdownCtx); err != nil {
-		log.Fatalf("reservation server graceful shutdown failed: %v", err)
+		log.Fatalf("graceful shutdown failed: %v", err)
 	}
+
+	log.Println("reservation service stopped")
 }
 
 func getEnv(key, fallback string) string {

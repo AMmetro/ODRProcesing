@@ -7,26 +7,12 @@ This project uses Kafka for asynchronous inter-service communication. The **proc
 ## Architecture
 
 ```
-┌────────────────┐
-│  Processing    │
-│   Service      │  Creates tasks and publishes events
-│                │  to Kafka topic: "tasks-events"
-└────────────────┘
-         │
-         │ (produces)
-         ▼
-   ┌──────────┐
-   │  Kafka   │
-   │ Cluster  │
-   └──────────┘
-         ▲
-         │ (consumes)
-         │
-┌────────────────┐
-│  Reservation   │
-│   Service      │  Consumes events from "tasks-events"
-│                │  and processes reservations
-└────────────────┘
+┌────────────────┐ ┌────────────────┐
+│ Processing │ │ Reservation │
+│ Service │ ──────── tasks-events ──────────────────────────► │ Service │
+│ │ │ │
+│ │ ◄────── tasks-responses (temporary consumer) ──── │ │
+└────────────────┘ └────────────────┘
 ```
 
 ## Kafka Topics

@@ -2,6 +2,8 @@ package reservation_repository
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	reservation_domain "github.com/AMmetro/ODRProcesing/services/reservation/internal/features/reservation/domain"
 )
@@ -24,4 +26,27 @@ func (r *ReservationRepository) GetItems(ctx context.Context) ([]reservation_dom
 	result := make([]reservation_domain.ReservationItem, len(r.items))
 	copy(result, r.items)
 	return result, nil
+}
+
+func (r *ReservationRepository) GetReservations(ctx context.Context, taskID int) (int, error) {
+
+	fmt.Println("create new product reservation - validate permission")
+
+	var approvalNumber int
+
+	select {
+	case <-time.After(3 * time.Second):
+		for _, item := range r.items {
+			if item.ID == taskID {
+				approvalNumber = item.ID
+				break
+			}
+		}
+		fmt.Println("product reservation created")
+		return approvalNumber, nil
+
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	}
+
 }

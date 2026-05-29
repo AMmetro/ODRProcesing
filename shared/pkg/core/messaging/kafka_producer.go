@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/segmentio/kafka-go"
 )
@@ -22,8 +23,13 @@ type kafkaProducerImpl struct {
 // NewKafkaProducer создает новый Kafka producer
 func NewKafkaProducer(brokers []string) (KafkaProducer, error) {
 	writer := &kafka.Writer{
-		Addr:     kafka.TCP(brokers...),
-		Balancer: &kafka.LeastBytes{},
+		Addr:         kafka.TCP(brokers...),
+		Balancer:     &kafka.LeastBytes{},
+		RequiredAcks: kafka.RequireAll, // ждать подтверждения от всех реплик
+		MaxAttempts:  3,                // повторные попытки
+		BatchSize:    100,              // размер батча
+		BatchTimeout: 1 * time.Second,  // таймаут батча
+		WriteTimeout: 10 * time.Second, // таймаут на запись
 	}
 
 	return &kafkaProducerImpl{
