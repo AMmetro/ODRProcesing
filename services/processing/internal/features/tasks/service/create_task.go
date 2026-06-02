@@ -13,15 +13,7 @@ import (
 	core_logger "github.com/AMmetro/ODRProcesing/shared/pkg/core/logger"
 )
 
-const (
-	TaskResponseTimeout = 5 * time.Second
-	StatusUnconfirmed   = "unconfirmed"
-	StatusPending       = "pending"
-	StatusConfirmed     = "confirmed"
-	StatusRejected      = "rejected"
-	StatusFailed        = "failed"
-	StatusTimeout       = "timeout"
-)
+const createConstantTimeout = 5 * time.Second
 
 func (s *TasksService) CreateTask(
 	ctx context.Context,
@@ -34,7 +26,7 @@ func (s *TasksService) CreateTask(
 		return domain.Task{}, fmt.Errorf("validate task domain: %w", err)
 	}
 
-	task.Status = StatusUnconfirmed // add default status unconfirmed
+	task.Status = domain.TaskStatusUnconfirmed // add default status unconfirmed
 	newTask, err := s.tasksRepository.CreateTask(ctx, task)
 	if err != nil {
 		return domain.Task{}, fmt.Errorf("create task: %w", err)
@@ -55,7 +47,7 @@ func (s *TasksService) CreateTask(
 		s.responseMutex.Unlock()
 	}()
 
-	// Отправляем событие в Kafka для reservation сервиса
+	// Send event to Kafka for reservation services with default status unconfirmed
 	taskMessage := map[string]interface{}{
 		"task_id":     newTask.ID,
 		"author_id":   newTask.AuthorUserId,
@@ -75,69 +67,74 @@ func (s *TasksService) CreateTask(
 			zap.Int("task_id", newTask.ID),
 			zap.Error(err),
 		)
-		// Откатываем таску если не удалось отправить событие
+		// Mark task as failed if we can't send event to Kafka
+		newTask.Status = domain.TaskStatusFailed
 		if _, updateErr := s.tasksRepository.UpdateTask(ctx, newTask); updateErr != nil {
 			log.Error("failed to mark task as failed",
 				zap.Int("task_id", newTask.ID),
 				zap.Error(updateErr),
 			)
 		}
-		return domain.Task{}, fmt.Errorf("send task.created event: %w", err)
+		return newTask, fmt.Errorf("send task.created event: %w", err)
+	}
+
+	newTask.Status = domain.TaskStatusPending
+	if _, updateStatus := s.tasksRepository.UpdateTask(ctx, newTask); updateStatus != nil {
+		log.Error("failed to mark task as pending",
+			zap.Int("task_id", newTask.ID),
+			zap.Error(updateStatus),
+		)
 	}
 
 	log.Debug("task.created event sent to kafka, waiting for confirmation", zap.Int("task_id", newTask.ID))
 
-	// Ждём ответа от reservation сервиса с timeout
-	timeoutCtx, cancel := context.WithTimeout(ctx, TaskResponseTimeout)
+	timeoutCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	select {
 
 	case response := <-responseChan:
-
-		if response.Status == "ok" {
-			newTask.Status = StatusConfirmed
+		if response.Error != nil {
+			log.Error("reservation service returned error",
+				zap.Int("task_id", newTask.ID),
+				zap.Error(response.Error),
+			)
+			newTask.Status = domain.TaskStatusRejected
+			if _, err := s.tasksRepository.UpdateTask(ctx, newTask); err != nil {
+				log.Error("failed to update rejected task status",
+					zap.Int("task_id", newTask.ID),
+					zap.Error(err),
+				)
+			}
+			return newTask, fmt.Errorf(
+				"reservation service error: %w",
+				response.Error,
+			)
+		}
+		if response.Status == domain.TaskStatusConfirmed {
+			newTask.Status = domain.TaskStatusConfirmed
 			confirmedTask, err := s.tasksRepository.UpdateTask(ctx, newTask)
 			if err != nil {
 				log.Error("failed to confirm task",
 					zap.Int("task_id", newTask.ID),
 					zap.Error(err),
 				)
-
 				return domain.Task{}, fmt.Errorf("confirm task: %w", err)
 			}
 
 			log.Debug("task confirmed",
 				zap.Int("task_id", newTask.ID),
 			)
-
 			return confirmedTask, nil
 		}
 
-		// Reservation rejected
-		newTask.Status = StatusRejected
-
-		if _, err := s.tasksRepository.UpdateTask(ctx, newTask); err != nil {
-			log.Error("failed to update rejected task status",
-				zap.Int("task_id", newTask.ID),
-				zap.Error(err),
-			)
-		}
-
-		log.Warn("task rejected by reservation service",
-			zap.Int("task_id", newTask.ID),
-			zap.String("status", response.Status),
-		)
-
 		return newTask, fmt.Errorf(
-			"task rejected: %w",
-			core_errors.ErrInvalidArgument,
+			"invalid response from reservation service: status=%q error=nil",
+			response.Status,
 		)
 
 	case <-timeoutCtx.Done():
-
-		newTask.Status = StatusTimeout
-
+		newTask.Status = domain.TaskStatusTimeout
 		if _, err := s.tasksRepository.UpdateTask(ctx, newTask); err != nil {
 			log.Error("failed to update timeout task status",
 				zap.Int("task_id", newTask.ID),

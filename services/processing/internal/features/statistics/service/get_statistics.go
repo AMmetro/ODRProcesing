@@ -43,12 +43,12 @@ func calcStatistics(tasks []domain.Task) domain.Statistics {
 	tasksCompleted := 0
 	for _, task := range tasks {
 
-		completionDuration := task.CompleteionDuration()
+		completionDuration := task.CompletionDuration()
 
 		if completionDuration != nil && *completionDuration > 0 {
 			// if *task.CompleteionDuration() > 0 {
 			tasksCompleted++
-			completionDuration := task.CompleteionDuration()
+			completionDuration := task.CompletionDuration()
 			if completionDuration != nil {
 				totalCompletedDuration += *completionDuration
 			}
@@ -64,4 +64,3 @@ func calcStatistics(tasks []domain.Task) domain.Statistics {
 	}
 	return domain.NewStatistics(tasksCreated, tasksCompleted, &tasksCompletedRate, tasksAverageCompletionTime)
 }
-

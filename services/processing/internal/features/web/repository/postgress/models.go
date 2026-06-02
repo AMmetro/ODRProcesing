@@ -12,7 +12,7 @@ type TaskModel struct {
 	Title        string
 	Description  *string
 	Completed    bool
-	Status       string
+	Status       domain.TaskStatus
 	AuthorUserId int
 	CreatedAt    time.Time
 	CompletedAt  *time.Time

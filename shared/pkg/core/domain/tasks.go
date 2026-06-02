@@ -7,6 +7,17 @@ import (
 	core_errors "github.com/AMmetro/ODRProcesing/shared/pkg/core/errors"
 )
 
+type TaskStatus string
+
+const (
+	TaskStatusUnconfirmed TaskStatus = "unconfirmed"
+	TaskStatusPending     TaskStatus = "pending"
+	TaskStatusConfirmed   TaskStatus = "confirmed"
+	TaskStatusRejected    TaskStatus = "rejected"
+	TaskStatusFailed      TaskStatus = "failed"
+	TaskStatusTimeout     TaskStatus = "timeout"
+)
+
 type Task struct {
 	ID      int
 	Version int
@@ -14,7 +25,7 @@ type Task struct {
 	Title        string
 	Description  *string
 	Completed    bool
-	Status       string // "unconfirmed", "confirmed", "cancelled"
+	Status       TaskStatus
 	CreatedAt    time.Time
 	CompletedAt  *time.Time
 	AuthorUserId int
@@ -26,7 +37,7 @@ func NewTask(
 	title string,
 	description *string,
 	completed bool,
-	status string,
+	status TaskStatus,
 	authorUserId int,
 	createdAt time.Time,
 	completedAt *time.Time,
@@ -148,7 +159,7 @@ func (t TaskPatch) Validate() error {
 	return nil
 }
 
-func (t *Task) CompleteionDuration() *time.Duration {
+func (t *Task) CompletionDuration() *time.Duration {
 	if !t.Completed {
 		return nil
 	}

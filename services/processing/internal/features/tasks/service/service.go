@@ -2,6 +2,7 @@ package tasks_service
 
 import (
 	"context"
+	"errors"
 	"sync"
 
 	"github.com/AMmetro/ODRProcesing/shared/pkg/core/domain"
@@ -9,7 +10,7 @@ import (
 )
 
 type ResponseResult struct {
-	Status string
+	Status domain.TaskStatus
 	Error  error
 }
 
@@ -62,10 +63,10 @@ func NewTasksService(
 	}
 }
 
-// HandleTaskResponse обрабатывает ответ от других микросервисов (например, reservation)
-// и отправляет результат в соответствующий канал
+// HandleTaskResponse process response from other microservices (reservation)
+// and extracts result to coresponding chanale
 func (s *TasksService) HandleTaskResponse(ctx context.Context, response map[string]interface{}) error {
-	// Извлекаем task_id из ответа
+	// Extract task_id from response
 	taskID, ok := response["task_id"]
 	if !ok {
 		return nil
@@ -82,13 +83,21 @@ func (s *TasksService) HandleTaskResponse(ctx context.Context, response map[stri
 		return nil
 	}
 
-	// Получаем статус из ответа
-	status, ok := response["reservation_status"].(string)
+	// Get status from response
+	statusStr, ok := response["reservation_status"].(string)
 	if !ok {
-		status = "error"
+		statusStr = string(domain.TaskStatusRejected)
 	}
 
-	// Отправляем результат в канал
+	status := domain.TaskStatus(statusStr)
+
+	// Get error message from respone
+	var responseErr error
+	if errMsg, ok := response["error"].(string); ok && errMsg != "" {
+		responseErr = errors.New(errMsg)
+	}
+
+	// send result to chanale
 	s.responseMutex.RLock()
 	responseChan, exists := s.responses[id]
 	s.responseMutex.RUnlock()
@@ -96,8 +105,9 @@ func (s *TasksService) HandleTaskResponse(ctx context.Context, response map[stri
 	if exists {
 		select {
 		case responseChan <- ResponseResult{
+			// Status: domain.TaskStatus(status),
 			Status: status,
-			Error:  nil,
+			Error:  responseErr,
 		}:
 		case <-ctx.Done():
 			return ctx.Err()
