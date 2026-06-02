@@ -24,6 +24,7 @@ func (r *TasksRepository) GetTasks(
 	title,
 	description,
 	completed,
+	status,
 	author_user_id,
 	created_at,
 	completed_at
@@ -74,6 +75,7 @@ func (r *TasksRepository) GetTasks(
 			&task.Title,
 			&task.Description,
 			&task.Completed,
+			&task.Status,
 			&task.AuthorUserId,
 			&task.CreatedAt,
 			&task.CompletedAt,
@@ -93,4 +95,3 @@ func (r *TasksRepository) GetTasks(
 
 	return tasksDomain, nil
 }
-

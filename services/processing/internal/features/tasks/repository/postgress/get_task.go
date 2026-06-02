@@ -19,7 +19,7 @@ func (r *TasksRepository) GetTask(
 	defer cancel()
 
 	query := `
-    SELECT id, version, title, description, completed, author_user_id, created_at, completed_at
+    SELECT id, version, title, description, completed, status, author_user_id, created_at, completed_at
 	FROM ODRProcesing.tasks WHERE id = $1;
     `
 
@@ -32,6 +32,7 @@ func (r *TasksRepository) GetTask(
 		&task.Title,
 		&task.Description,
 		&task.Completed,
+		&task.Status,
 		&task.AuthorUserId,
 		&task.CreatedAt,
 		&task.CompletedAt,
@@ -49,4 +50,3 @@ func (r *TasksRepository) GetTask(
 
 	return taskDomain, nil
 }
-

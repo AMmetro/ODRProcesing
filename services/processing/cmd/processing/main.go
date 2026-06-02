@@ -107,6 +107,42 @@ func main() {
 	tasksService := tasks_service.NewTasksService(tasksRepository, kafkaProducer)
 	tasksTransportHTTP := tasks_transport_http.NewTasksHTTPHandler(tasksService)
 
+	// ============================================================================
+	// 5b. SETUP CENTRALIZED KAFKA CONSUMER FOR TASK RESPONSES
+	// ============================================================================
+	kafkaResponsesConsumer, err := core_messaging.NewKafkaConsumer(
+		[]string{"localhost:9092"},
+		"processing-task-responses",
+		"tasks-responses",
+	)
+	if err != nil {
+		logger.Fatal("Failed to init kafka responses consumer", zap.Error(err))
+	}
+	defer kafkaResponsesConsumer.Close()
+
+	// Set message handler for task responses
+	kafkaResponsesConsumer.SetMessageHandler(func(message []byte) error {
+		var response map[string]interface{}
+		if err := core_messaging.UnmarshalMessage(message, &response); err != nil {
+			logger.Error("failed to unmarshal task response message", zap.Error(err))
+			return nil // Don't fail, continue consuming
+		}
+
+		// Handle response in tasks service
+		if err := tasksService.HandleTaskResponse(context.Background(), response); err != nil {
+			logger.Error("failed to handle task response", zap.Error(err))
+		}
+
+		return nil
+	})
+
+	// Start consumer in background goroutine
+	go func() {
+		if err := kafkaResponsesConsumer.Start(ctx); err != nil {
+			logger.Error("kafka responses consumer error", zap.Error(err))
+		}
+	}()
+
 	statisticsRepository := statistics_postgres_repository.NewStatisticsRepository(pool)
 	statisticsService := statistics_service.NewStatisticsService(statisticsRepository)
 	statisticsTransportHTTP := statistics_transport_http.NewStatisticsHTTPHandler(statisticsService)

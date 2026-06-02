@@ -17,9 +17,9 @@ func (r *TasksRepository) CreateTask(
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 	query := `
-    INSERT INTO ODRProcesing.tasks (title, description, completed, author_user_id, created_at, completed_at)
-    VALUES ($1, $2, $3, $4, $5, $6)
-    RETURNING id, version, title, description, completed, author_user_id, created_at, completed_at;
+    INSERT INTO ODRProcesing.tasks (title, description, completed, status, author_user_id, created_at, completed_at)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    RETURNING id, version, title, description, completed, status, author_user_id, created_at, completed_at;
     `
 
 	row := r.pool.QueryRow(
@@ -27,6 +27,7 @@ func (r *TasksRepository) CreateTask(
 		task.Title,
 		task.Description,
 		task.Completed,
+		task.Status,
 		task.AuthorUserId,
 		task.CreatedAt,
 		task.CompletedAt,
@@ -40,6 +41,7 @@ func (r *TasksRepository) CreateTask(
 		&taskModel.Title,
 		&taskModel.Description,
 		&taskModel.Completed,
+		&taskModel.Status,
 		&taskModel.AuthorUserId,
 		&taskModel.CreatedAt,
 		&taskModel.CompletedAt,
@@ -62,4 +64,3 @@ func (r *TasksRepository) CreateTask(
 
 	return taskDomain, nil
 }
-

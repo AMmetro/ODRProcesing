@@ -6,9 +6,21 @@ import (
 	"strconv"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/AMmetro/ODRProcesing/shared/pkg/core/domain"
+	core_errors "github.com/AMmetro/ODRProcesing/shared/pkg/core/errors"
 	core_logger "github.com/AMmetro/ODRProcesing/shared/pkg/core/logger"
-	"github.com/AMmetro/ODRProcesing/shared/pkg/core/messaging"
+)
+
+const (
+	TaskResponseTimeout = 5 * time.Second
+	StatusUnconfirmed   = "unconfirmed"
+	StatusPending       = "pending"
+	StatusConfirmed     = "confirmed"
+	StatusRejected      = "rejected"
+	StatusFailed        = "failed"
+	StatusTimeout       = "timeout"
 )
 
 func (s *TasksService) CreateTask(
@@ -22,103 +34,124 @@ func (s *TasksService) CreateTask(
 		return domain.Task{}, fmt.Errorf("validate task domain: %w", err)
 	}
 
+	task.Status = StatusUnconfirmed // add default status unconfirmed
 	newTask, err := s.tasksRepository.CreateTask(ctx, task)
 	if err != nil {
 		return domain.Task{}, fmt.Errorf("create task: %w", err)
 	}
 
+	log.Debug("task created in DB with unconfirmed status", zap.Int("task_id", newTask.ID))
+
+	// Регистрируем канал для ожидания ответа
+	// task_id -> same partition -> same consumer instance IN PROD
+	responseChan := make(chan ResponseResult, 1)
+	s.responseMutex.Lock()
+	s.responses[newTask.ID] = responseChan // responses[102] = responseChan
+	s.responseMutex.Unlock()
+
+	defer func() {
+		s.responseMutex.Lock()
+		delete(s.responses, newTask.ID)
+		s.responseMutex.Unlock()
+	}()
+
+	// Отправляем событие в Kafka для reservation сервиса
 	taskMessage := map[string]interface{}{
 		"task_id":     newTask.ID,
 		"author_id":   newTask.AuthorUserId,
 		"title":       newTask.Title,
 		"description": newTask.Description,
-		"completed":   newTask.Completed,
 		"created_at":  newTask.CreatedAt,
 		"event_type":  "task.created",
 	}
 
-	err = s.kafkaProducer.SendMessage(
-		context.Background(),
+	if err := s.kafkaProducer.SendMessage(
+		ctx,
 		"tasks-events",
 		strconv.Itoa(newTask.ID),
 		taskMessage,
-	)
-
-	if err != nil {
-		return domain.Task{}, fmt.Errorf("create task: %w", err)
-	} else {
-		log.Debug("Send message to Kafka")
+	); err != nil {
+		log.Error("failed to send task.created event to kafka",
+			zap.Int("task_id", newTask.ID),
+			zap.Error(err),
+		)
+		// Откатываем таску если не удалось отправить событие
+		if _, updateErr := s.tasksRepository.UpdateTask(ctx, newTask); updateErr != nil {
+			log.Error("failed to mark task as failed",
+				zap.Int("task_id", newTask.ID),
+				zap.Error(updateErr),
+			)
+		}
+		return domain.Task{}, fmt.Errorf("send task.created event: %w", err)
 	}
 
-	replyTopic := "tasks-responses"
-	groupID := "processing-replies-" + strconv.Itoa(newTask.ID) + "-" + strconv.FormatInt(time.Now().UnixNano(), 10)
+	log.Debug("task.created event sent to kafka, waiting for confirmation", zap.Int("task_id", newTask.ID))
 
-	kafkaConsumer, err := messaging.NewKafkaConsumer([]string{"localhost:9092"}, groupID, replyTopic)
-	if err != nil {
-		log.Debug("failed to init temporary kafka consumer: ")
-		return newTask, nil
-	}
-	defer kafkaConsumer.Close()
-
-	replyCh := make(chan map[string]interface{}, 1)
-
-	kafkaConsumer.SetMessageHandler(func(message []byte) error {
-		var msg map[string]interface{}
-		if err := messaging.UnmarshalMessage(message, &msg); err != nil {
-			// log.Printf("failed to unmarshal reply message: %v", err)
-			return err
-		}
-
-		// Простая корреляция по task_id
-		if idRaw, ok := msg["task_id"]; ok {
-			var id int
-			switch v := idRaw.(type) {
-			case float64:
-				id = int(v)
-			case int:
-				id = v
-			case string:
-				if parsed, err := strconv.Atoi(v); err == nil {
-					id = parsed
-				}
-			}
-
-			if id == newTask.ID {
-				select {
-				case replyCh <- msg:
-				default:
-				}
-			}
-		}
-
-		return nil
-	})
-
-	// Таймаут ожидания ответа
-	waitCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	// Ждём ответа от reservation сервиса с timeout
+	timeoutCtx, cancel := context.WithTimeout(ctx, TaskResponseTimeout)
 	defer cancel()
 
-	if err := kafkaConsumer.Start(waitCtx); err != nil {
-		// log.Printf("failed to start temporary kafka consumer: %v", err)
-		return newTask, nil
-	}
-
 	select {
-	case reply := <-replyCh:
-		// log.Printf("received reservation reply for task %d: %v", newTask.ID, reply)
 
-		// Если в ответе есть статус резервации, можно обновить задачу
-		if status, ok := reply["reservation_status"].(string); ok && status == "ok" {
-			newTask.Completed = true
-			if updated, err := s.tasksRepository.UpdateTask(context.Background(), newTask); err == nil {
-				newTask = updated
-			} else {
-				// log.Debug("failed to update task after reservation reply: %v", err)
+	case response := <-responseChan:
+
+		if response.Status == "ok" {
+			newTask.Status = StatusConfirmed
+			confirmedTask, err := s.tasksRepository.UpdateTask(ctx, newTask)
+			if err != nil {
+				log.Error("failed to confirm task",
+					zap.Int("task_id", newTask.ID),
+					zap.Error(err),
+				)
+
+				return domain.Task{}, fmt.Errorf("confirm task: %w", err)
 			}
-		}
-	case <-waitCtx.Done():
-		// log.Printf("timed out waiting for reservation reply for task %d", newTask.ID)
-	}
 
-	return newTask, nil
+			log.Debug("task confirmed",
+				zap.Int("task_id", newTask.ID),
+			)
+
+			return confirmedTask, nil
+		}
+
+		// Reservation rejected
+		newTask.Status = StatusRejected
+
+		if _, err := s.tasksRepository.UpdateTask(ctx, newTask); err != nil {
+			log.Error("failed to update rejected task status",
+				zap.Int("task_id", newTask.ID),
+				zap.Error(err),
+			)
+		}
+
+		log.Warn("task rejected by reservation service",
+			zap.Int("task_id", newTask.ID),
+			zap.String("status", response.Status),
+		)
+
+		return newTask, fmt.Errorf(
+			"task rejected: %w",
+			core_errors.ErrInvalidArgument,
+		)
+
+	case <-timeoutCtx.Done():
+
+		newTask.Status = StatusTimeout
+
+		if _, err := s.tasksRepository.UpdateTask(ctx, newTask); err != nil {
+			log.Error("failed to update timeout task status",
+				zap.Int("task_id", newTask.ID),
+				zap.Error(err),
+			)
+		}
+
+		log.Error("timeout waiting reservation confirmation",
+			zap.Int("task_id", newTask.ID),
+		)
+
+		return newTask, fmt.Errorf(
+			"task confirmation timeout: %w",
+			core_errors.ErrTimeout,
+		)
+	}
 }

@@ -18,10 +18,10 @@ func (r *TasksRepository) UpdateTask(
 	defer cancel()
 	query := `
     UPDATE ODRProcesing.tasks 
-	SET title=$1, description=$2, completed=$3, completed_at=$4, version = version + 1
-    WHERE id = $5 AND version = $6
+	SET title=$1, description=$2, completed=$3, status=$4, completed_at=$5, version = version + 1
+    WHERE id = $6 AND version = $7
     RETURNING id, version, title, description,
-	completed, author_user_id, created_at, completed_at;
+	completed, status, author_user_id, created_at, completed_at;
     `
 
 	row := r.pool.QueryRow(
@@ -29,6 +29,7 @@ func (r *TasksRepository) UpdateTask(
 		task.Title,
 		task.Description,
 		task.Completed,
+		task.Status,
 		task.CompletedAt,
 		task.ID,
 		task.Version,
@@ -42,6 +43,7 @@ func (r *TasksRepository) UpdateTask(
 		&taskModel.Title,
 		&taskModel.Description,
 		&taskModel.Completed,
+		&taskModel.Status,
 		&taskModel.AuthorUserId,
 		&taskModel.CreatedAt,
 		&taskModel.CompletedAt,
@@ -64,4 +66,3 @@ func (r *TasksRepository) UpdateTask(
 
 	return taskDomain, nil
 }
-

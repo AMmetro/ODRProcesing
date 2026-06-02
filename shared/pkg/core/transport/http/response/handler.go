@@ -59,6 +59,10 @@ func (h *HTTPResponseHandler) ErrorResponse(err error, msg string) {
 		statusCode = http.StatusConflict
 		logFunc = h.log.Warn
 
+	case errors.Is(err, core_errors.ErrTimeout):
+		statusCode = http.StatusRequestTimeout
+		logFunc = h.log.Warn
+
 	default:
 		statusCode = http.StatusInternalServerError
 		logFunc = h.log.Error
@@ -103,4 +107,3 @@ func (h *HTTPResponseHandler) errorResponse(
 	// 	h.log.Error("write HTTP response", zap.Error(err))
 	// }
 }
-

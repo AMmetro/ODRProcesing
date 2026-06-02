@@ -28,6 +28,7 @@ func (r *StatisticsRepository) GetTasks(
 	title,
 	description,
 	completed,
+	status,
 	author_user_id,
 	created_at,
 	completed_at
@@ -80,6 +81,7 @@ func (r *StatisticsRepository) GetTasks(
 			&taskModal.Title,
 			&taskModal.Description,
 			&taskModal.Completed,
+			&taskModal.Status,
 			&taskModal.AuthorUserId,
 			&taskModal.CreatedAt,
 			&taskModal.CompletedAt,
@@ -99,4 +101,3 @@ func (r *StatisticsRepository) GetTasks(
 
 	return tasksDomains, nil
 }
-

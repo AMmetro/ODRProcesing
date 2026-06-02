@@ -14,6 +14,7 @@ type Task struct {
 	Title        string
 	Description  *string
 	Completed    bool
+	Status       string // "unconfirmed", "confirmed", "cancelled"
 	CreatedAt    time.Time
 	CompletedAt  *time.Time
 	AuthorUserId int
@@ -25,6 +26,7 @@ func NewTask(
 	title string,
 	description *string,
 	completed bool,
+	status string,
 	authorUserId int,
 	createdAt time.Time,
 	completedAt *time.Time,
@@ -35,6 +37,7 @@ func NewTask(
 		Title:        title,
 		Description:  description,
 		Completed:    completed,
+		Status:       status,
 		AuthorUserId: authorUserId,
 		CreatedAt:    createdAt,
 		CompletedAt:  completedAt,
@@ -53,6 +56,7 @@ func NewTaskInitialized(
 		Title:        title,
 		Description:  description,
 		Completed:    false,
+		Status:       "unconfirmed",
 		CreatedAt:    time.Now(),
 		CompletedAt:  nil,
 		AuthorUserId: authorUserId,
@@ -155,4 +159,3 @@ func (t *Task) CompleteionDuration() *time.Duration {
 	duration := t.CompletedAt.Sub(t.CreatedAt)
 	return &duration
 }
-

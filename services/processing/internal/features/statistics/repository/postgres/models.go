@@ -12,6 +12,7 @@ type TaskModel struct {
 	Title        string
 	Description  *string
 	Completed    bool
+	Status       string
 	AuthorUserId int
 	CreatedAt    time.Time
 	CompletedAt  *time.Time
@@ -26,6 +27,7 @@ func TasksDomainsFromModels(tasks []TaskModel) []domain.Task {
 			task.Title,
 			task.Description,
 			task.Completed,
+			task.Status,
 			task.AuthorUserId,
 			task.CreatedAt,
 			task.CompletedAt,
@@ -41,10 +43,10 @@ func TaskDomainFromModel(task TaskModel) domain.Task {
 		task.Title,
 		task.Description,
 		task.Completed,
+		task.Status,
 		task.AuthorUserId,
 		task.CreatedAt,
 		task.CompletedAt,
 	)
 	return taskDomain
 }
-
